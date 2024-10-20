@@ -1,24 +1,71 @@
- <View style={styles.banner}>
-        <Text style={styles.title}>MAPUBI ONG</Text>
-        <Image 
-          source={require('../assets/images.png')}
-          style={styles.profileCircle}
-        />
-         <Text style={styles.welcomeText}>Hello {userEmail}!</Text>
+ <View style={styles.formContainer}>
+      <Text style={styles.label}>Nom du patient</Text>
+         <View style={styles.inputContainer}>
 
-         {/* Photo de profil à droite */}
-        <View style={styles.profileCircle}>
-          <Image 
-            source={require('../assets/images-user.png')} 
-            style={styles.profileImage} 
-          />
-        </View>
-        {/* Barre de recherche */}
-     <TextInput 
-        style={styles.searchBar} 
-        placeholder="Search here..."
-      />
+           <TextInput style={styles.TextInput} 
+           placeholder='Entrer le nom du patient' />
+         </View>
+      </View>
 
-      {/* Phrase "Welcome back" */}
-      <Text style={styles.welcomeBackText}>Welcome back</Text>
-    </View>    
+      <View style={styles.formContainer}>
+      <Text style={styles.label}>Groupe Sanguin</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Groupe Sanguin' />
+         </View>
+      </View>
+
+      <View style={styles.formContainer}>
+      <Text style={styles.label}>Pression sanguine</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Pression sanguine' />
+         </View>
+      </View>
+
+       <View style={styles.formContainer}>
+      <Text style={styles.label}>Glycemie</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Glycemie'  />
+         </View>
+      </View>
+
+       <View style={styles.formContainer}>
+      <Text style={styles.label}>Date de naissance</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Date de naissance' />
+         </View>
+      </View>
+
+       <View style={styles.formContainer}>
+      <Text style={styles.label}>Temperature</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Temperature' />
+         </View>
+      </View>
+
+       <View style={styles.formContainer}>
+      <Text style={styles.label}>Frequence respiratoire</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Frequence respiratoire' />
+         </View>
+      </View>
+
+       <View style={styles.formContainer}>
+      <Text style={styles.label}>Poids</Text>
+         <View style={styles.inputContainer}>
+
+           <TextInput style={styles.TextInput} 
+           placeholder='Poids' secureTextEntry={true} />
+         </View>
+      </View>
