@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useMutation } from '@apollo/client';
 import { USER_LOGIN } from './graphql/Mutation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
@@ -21,7 +22,6 @@ const LoginScreen = () => {
         // Utilise la mutation USER_LOGIN
   const [loginUser, { loading, error }] = useMutation(USER_LOGIN);
 
-
   const navigation = useNavigation();
 
   const handleForgot = ()=>{
@@ -31,40 +31,97 @@ const LoginScreen = () => {
       navigation.navigate("SignUp");
       };
       
-        const handleHome = () => {
+   const handleHome = async () => {
           console.log("handleHome called");
           let formErrors = {};
-          if (!email) formErrors.email = 'Veuillez entrer le nom d\'utilisateur';
-          if (!password) formErrors.password = 'Le mot de passe est obligatoire';
+          if (!email) formErrors.email = 'Your email is required';
+          if (!password) formErrors.password = 'Please enter your password';
           setErrors(formErrors);
           // Si pas d'erreurs, on peut faire autre chose (comme envoyer les données)
           if (Object.keys(formErrors).length === 0) {
             console.log('Données valides, prêt à soumettre');
+            
+            try {
+              const response = await loginUser({
+                variables: {
+                  email: email,
+                  password: password,
+                },
+              });
 
-            loginUser({
-              variables: {
-                email: email,
-                password: password,
-              }
-            })
-            .then(response => {
-              const { success, message } = response.data.userLogin;
+                const userData = response.data.userLogin;
+            if (userData.success) {
+            const email = userData.user.email;  // Vérifie la structure de la réponse
+            const token = userData.token;       // Vérifie que tu reçois bien un token
+            const expiresIn = userData.expiresIn;
+               console.log('User email:', email);
+                console.log('User token:', token);
+                //console.log('User Time:', expiresIn);
+
+
         
-              if (success) {
-                Alert.alert('Success', 'Login successful!');
-                // Redirige vers la page Home et passe l'email de l'utilisateur ou d'autres infos
-                navigation.navigate('Home', { userEmail: email });
+                // Stocke le token et le firstName dans AsyncStorage
+                if (email && token ) {
+                  try {
+                    await AsyncStorage.setItem('userEmail', email);
+                    await AsyncStorage.setItem('userToken', token);
+                   // await AsyncStorage.setItem('tokenExpiration', expiresIn.toString()); // Stocker la date d'expiration
+                    console.log('Email, token was saved successfully');
+                    // Redirige vers la page Home après la connexion réussie
+                    navigation.replace('Home');
+                  } catch (e) {
+                    console.log('Error saving data:', e);
+                  }
+                } else {
+                  console.log('Email or token is missing');
+                }
+
+
               } else {
-                Alert.alert('Login Failed', message);
+                Alert.alert('Login failed', data.userLogin.message);
               }
-            })
-            .catch(err => {
-              console.error('Error:', err.message);
-              Alert.alert('Error', 'An error occurred during login.');
-            });
+            } catch (e) {
+              console.error('Error during login:', e);
+              Alert.alert('Login Error', e.message);
+            }
+          }
+
+        };
+
+        const checkStoredData = async () => {
+          try {
+            const email = await AsyncStorage.getItem('userEmail');
+            const token = await AsyncStorage.getItem('userToken');
+           // const expiresIn = await AsyncStorage.getItem('tokenExpiration');
+        
+            if (email !== null && token !== null && expiresIn !== null ) {
+              console.log('Stored email:', email);
+              console.log('Stored token:', token);
+             // console.log('Stored expiresIn:', expiresIn);
+            } else {
+              console.log('No data found');
+            }
+          } catch (e) {
+            console.log('Error retrieving data:', e);
           }
         };
-      
+        
+        
+        const saveTokenData = async (token, expiresIn) => {
+          try {
+           // const expirationDate = Date.now() + expiresIn * 1000; // expiresIn en secondes
+            await AsyncStorage.setItem('userToken', token);
+           // await AsyncStorage.setItem('tokenExpiration', expirationDate.toString());
+            console.log('Token saved successfully.');
+          } catch (error) {
+            console.log('Error saving token data:', error);
+          }
+        };
+
+        // Appelle la fonction pour vérifier
+        checkStoredData();
+        saveTokenData();
+
 
 
   return (
@@ -85,14 +142,14 @@ const LoginScreen = () => {
 
 {/* Formulaire */}
       <View style={styles.formContainer}>
-      <Text style={styles.label}>Username or email</Text>
+      <Text style={styles.label}>Email</Text>
          <View style={styles.inputContainer}>
          <AntDesign name="user" size={24} color="black" />
 
            <TextInput style={styles.TextInput} 
-           placeholder='Enter user name or email'  value={email} onChangeText={setEmail} keyboardType="email-address" />
+           placeholder='Enter your email'  value={email} onChangeText={setEmail} keyboardType="email-address" />
          </View>
-         {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+         {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
       </View>
 
       <View style={styles.formContainer}>
@@ -147,7 +204,7 @@ export default LoginScreen
 const styles = StyleSheet.create({
   container:{
     flex: 1,
-    marginTop: 20,
+    marginTop: 12,
     marginHorizontal: 10,
   },
   formContainer:{
@@ -207,7 +264,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     borderRadius: 15,
     alignItems: 'center',
-    marginVertical:4,
+    marginVertical:5,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -222,7 +279,7 @@ const styles = StyleSheet.create({
   Text:{
     fontSize: 16,
     alignSelf: 'center',
-    marginVertical:5,
+    marginVertical:8,
   },
   buttonContainer: {           
     flexDirection: 'row',  
@@ -261,7 +318,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red',
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
 })

@@ -2,19 +2,62 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity, GestureHandlerRootView } from 'react-native-gesture-handler'
-import SignUpScreen  from '../smc-mobile/src/Screens/SignUpScreen';
-import  LoginScreen from '../smc-mobile/src/Screens/LoginScreen';
-import React, { useEffect } from 'react';
+import SignUpScreen  from './src/Screens/SignUpScreen';
+import  LoginScreen from './src/Screens/LoginScreen';
+import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native'
 import AntDesign from '@expo/vector-icons/AntDesign';
-import ForgotScreen from '../smc-mobile/src/Screens/ForgotScreen';
-import HomeScreen from '../smc-mobile/src/Screens/HomeScreen';
-import NewConsultationScreen from '../smc-mobile/src/Screens/NewConsultationScreen';
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import ForgotScreen from './src/Screens/ForgotScreen';
+import HomeScreen from './src/Screens/HomeScreen';
+import PhoneScreen from './src/Screens/PhoneScreen';
+import NotificationScreen from './src/Screens/NotificationScreen';
+import SettingScreen from './src/Screens/SettingScreen';
+import NewConsultationScreen from './src/Screens/NewConsultationScreen';
+import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function HomeTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Phone') {
+            iconName = focused ? 'call' : 'call-outline';
+          } else if (route.name === 'Notification') {
+            iconName = focused ? 'notifications' : 'notifications-outline';
+          } else if (route.name === 'Setting') {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#007aff',
+        tabBarInactiveTintColor: '#8e8e93',
+        tabBarStyle: { backgroundColor: '#fff', paddingBottom: 5 },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Phone" component={PhoneScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Notification" component={NotificationScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Setting" component={SettingScreen} options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
+
+
 
 function SplashScreen({ navigation }) {
   // Rediriger vers la page d'accueil après 3 secondes
@@ -29,19 +72,20 @@ function SplashScreen({ navigation }) {
   return (
     <View style={styles.splashContainer}>
       <Image 
-        source={require('../smc-mobile/src/assets/Group 13.png')} // Exemple d'icône
+        source={require('./src/assets/Group 13.png')} // Exemple d'icône
         style={styles.logo} resizeMode='contain'
       />
     </View>
   );
 }
 
+
 function GetStartedScreen({ navigation }) {
   return (
     <GestureHandlerRootView>
     <View style={styles.getStartedContainer}>
       <Image 
-        source={require('../smc-mobile/src/assets/consultation.png')} // Exemple d'icône
+        source={require('./src/assets/consultation.png')} // Exemple d'icône
         style={styles.logo} resizeMode='contain'/>
 
       <Text style={styles.getStartedText}>Welcome to the App!</Text>
@@ -64,18 +108,9 @@ function GetStartedScreen({ navigation }) {
 
 
 
-export default function App() {
-
-
-  const client= new ApolloClient({
-    cache: new InMemoryCache(),
-    uri:"http://5.182.33.47:4000/graphql"
-  })
-
-
+// Stack Navigator pour Login et Signup
+function AuthStack() {
   return (
-    <ApolloProvider client={client}>
-    <NavigationContainer>
     <Stack.Navigator initialRouteName='Splash'>
       <Stack.Screen name='SignUp' options={{headerShown:false}} component={SignUpScreen} />
       <Stack.Screen name='Login' options={{headerShown:false}} component={LoginScreen} />
@@ -84,12 +119,74 @@ export default function App() {
       <Stack.Screen name='Forgot' options={{headerShown:false}} component={ForgotScreen} />
       <Stack.Screen name='Home' options={{headerShown:false}} component={HomeScreen} />
       <Stack.Screen name='NewConsultation' options={{headerShown:false}} component={NewConsultationScreen} />
+      <Stack.Screen name="HomeTabs" options={{ headerShown: false }} component={HomeTabNavigator} />
 
     </Stack.Navigator>
+  );
+}
+
+
+// Création du client Apollo
+const createApolloClient = (token) => {
+  const httpLink = new HttpLink({
+    uri: "http://5.182.33.47:4000/graphql", // Mettre l'URL de ton serveur GraphQL
+  });
+
+  const authLink = setContext(async (_, { headers }) => {
+    const token = await AsyncStorage.getItem('userToken');
+    console.log("Token récupéré:", token);
+
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : '', // Ajoute le token à l'en-tête Authorization
+      },
+    };
+  });
+
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+  });
+};
+
+
+
+
+export default function App() {
+
+  /*const client= new ApolloClient({
+    cache: new InMemoryCache(),
+    uri: authLink.concat("http://5.182.33.47:4000/graphql"),
+  })*/
+
+  const [client, setClient] = useState(null);
+
+  useEffect(() => {
+    const initializeApolloClient = async () => {
+      const token = await AsyncStorage.getItem('userToken'); // Récupérer le token ici
+      setClient(createApolloClient(token)); // Créer le client Apollo avec le token
+    };
+
+    initializeApolloClient(); // Initialiser le client Apollo
+  }, []);
+
+  if (!client) {
+    return null; // Ou tu peux afficher un écran de chargement
+  }
+
+
+
+  return (
+    <ApolloProvider client={client}>
+    <NavigationContainer>
+       <AuthStack />
     </NavigationContainer>
     </ApolloProvider>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   splashContainer: {

@@ -1,0 +1,24 @@
+ <View style={styles.banner}>
+        <Text style={styles.title}>MAPUBI ONG</Text>
+        <Image 
+          source={require('../assets/images.png')}
+          style={styles.profileCircle}
+        />
+         <Text style={styles.welcomeText}>Hello {userEmail}!</Text>
+
+         {/* Photo de profil à droite */}
+        <View style={styles.profileCircle}>
+          <Image 
+            source={require('../assets/images-user.png')} 
+            style={styles.profileImage} 
+          />
+        </View>
+        {/* Barre de recherche */}
+     <TextInput 
+        style={styles.searchBar} 
+        placeholder="Search here..."
+      />
+
+      {/* Phrase "Welcome back" */}
+      <Text style={styles.welcomeBackText}>Welcome back</Text>
+    </View>    
