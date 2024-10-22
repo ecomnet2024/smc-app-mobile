@@ -1,71 +1,50 @@
- <View style={styles.formContainer}>
-      <Text style={styles.label}>Nom du patient</Text>
-         <View style={styles.inputContainer}>
+{/* Rubrique: Informations personnelles */}
+        <Text style={styles.heading}>Informations personnelles</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Prénom"
+          value={formData.firstName}
+          onChangeText={(value) => handleInputChange('firstName', value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Nom"
+          value={formData.lastName}
+          onChangeText={(value) => handleInputChange('lastName', value)}
+        />
 
-           <TextInput style={styles.TextInput} 
-           placeholder='Entrer le nom du patient' />
-         </View>
-      </View>
+        {/* Rubrique: Détails du compte */}
+        <Text style={styles.heading}>Détails du compte</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          keyboardType="email-address"
+          value={formData.email}
+          onChangeText={(value) => handleInputChange('email', value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Mot de passe"
+          secureTextEntry
+          value={formData.password}
+          onChangeText={(value) => handleInputChange('password', value)}
+        />
 
-      <View style={styles.formContainer}>
-      <Text style={styles.label}>Groupe Sanguin</Text>
-         <View style={styles.inputContainer}>
+        {/* Rubrique: Adresse */}
+        <Text style={styles.heading}>Adresse</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Adresse"
+          value={formData.address}
+          onChangeText={(value) => handleInputChange('address', value)}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Ville"
+          value={formData.city}
+          onChangeText={(value) => handleInputChange('city', value)}
+        />
 
-           <TextInput style={styles.TextInput} 
-           placeholder='Groupe Sanguin' />
-         </View>
-      </View>
-
-      <View style={styles.formContainer}>
-      <Text style={styles.label}>Pression sanguine</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Pression sanguine' />
-         </View>
-      </View>
-
-       <View style={styles.formContainer}>
-      <Text style={styles.label}>Glycemie</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Glycemie'  />
-         </View>
-      </View>
-
-       <View style={styles.formContainer}>
-      <Text style={styles.label}>Date de naissance</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Date de naissance' />
-         </View>
-      </View>
-
-       <View style={styles.formContainer}>
-      <Text style={styles.label}>Temperature</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Temperature' />
-         </View>
-      </View>
-
-       <View style={styles.formContainer}>
-      <Text style={styles.label}>Frequence respiratoire</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Frequence respiratoire' />
-         </View>
-      </View>
-
-       <View style={styles.formContainer}>
-      <Text style={styles.label}>Poids</Text>
-         <View style={styles.inputContainer}>
-
-           <TextInput style={styles.TextInput} 
-           placeholder='Poids' secureTextEntry={true} />
-         </View>
-      </View>
+      <TouchableOpacity style= {styles.signInButton} onPress={handleSubmit} >
+          <Text style={styles.buttonText}>Valider</Text>
+        </TouchableOpacity>

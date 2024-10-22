@@ -6,9 +6,18 @@ import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-nativ
 const SettingsScreen = () => {
   return (
     <GestureHandlerRootView>
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
     <View>
-      <Text>SettingsScreen</Text>
+    <Text style={styles.header}>Settings</Text>
+      <TouchableOpacity style={styles.settingItem}>
+        <Text style={styles.settingText}>Change Password</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.settingItem}>
+        <Text style={styles.settingText}>Notification Preferences</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.settingItem}>
+        <Text style={styles.settingText}>Privacy Policy</Text>
+      </TouchableOpacity>
     </View>
     </SafeAreaView>
     </GestureHandlerRootView>
@@ -17,4 +26,23 @@ const SettingsScreen = () => {
 
 export default SettingsScreen
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  settingItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  settingText: {
+    fontSize: 18,
+  },
+})

@@ -58,7 +58,6 @@ function HomeTabNavigator() {
 }
 
 
-
 function SplashScreen({ navigation }) {
   // Rediriger vers la page d'accueil après 3 secondes
   useEffect(() => {
@@ -136,10 +135,13 @@ const createApolloClient = (token) => {
     const token = await AsyncStorage.getItem('userToken');
     console.log("Token récupéré:", token);
 
+    const authorizationHeader = token ? `Bearer ${token}` : '';
+    console.log("En-tête Authorization:", authorizationHeader); // Vérifie l'en-tête ici
+  
     return {
       headers: {
         ...headers,
-        authorization: token ? `Bearer ${token}` : '', // Ajoute le token à l'en-tête Authorization
+        authorization: authorizationHeader,
       },
     };
   });
@@ -154,11 +156,6 @@ const createApolloClient = (token) => {
 
 
 export default function App() {
-
-  /*const client= new ApolloClient({
-    cache: new InMemoryCache(),
-    uri: authLink.concat("http://5.182.33.47:4000/graphql"),
-  })*/
 
   const [client, setClient] = useState(null);
 

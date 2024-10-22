@@ -53,22 +53,16 @@ const LoginScreen = () => {
             if (userData.success) {
             const email = userData.user.email;  // Vérifie la structure de la réponse
             const token = userData.token;       // Vérifie que tu reçois bien un token
-            const expiresIn = userData.expiresIn;
                console.log('User email:', email);
                 console.log('User token:', token);
-                //console.log('User Time:', expiresIn);
+              
 
-
-        
-                // Stocke le token et le firstName dans AsyncStorage
                 if (email && token ) {
                   try {
                     await AsyncStorage.setItem('userEmail', email);
                     await AsyncStorage.setItem('userToken', token);
-                   // await AsyncStorage.setItem('tokenExpiration', expiresIn.toString()); // Stocker la date d'expiration
                     console.log('Email, token was saved successfully');
-                    // Redirige vers la page Home après la connexion réussie
-                    navigation.replace('Home');
+                    navigation.replace('HomeTabs');
                   } catch (e) {
                     console.log('Error saving data:', e);
                   }
@@ -92,12 +86,10 @@ const LoginScreen = () => {
           try {
             const email = await AsyncStorage.getItem('userEmail');
             const token = await AsyncStorage.getItem('userToken');
-           // const expiresIn = await AsyncStorage.getItem('tokenExpiration');
         
             if (email !== null && token !== null && expiresIn !== null ) {
               console.log('Stored email:', email);
               console.log('Stored token:', token);
-             // console.log('Stored expiresIn:', expiresIn);
             } else {
               console.log('No data found');
             }
@@ -107,18 +99,15 @@ const LoginScreen = () => {
         };
         
         
-        const saveTokenData = async (token, expiresIn) => {
+        const saveTokenData = async (token) => {
           try {
-           // const expirationDate = Date.now() + expiresIn * 1000; // expiresIn en secondes
             await AsyncStorage.setItem('userToken', token);
-           // await AsyncStorage.setItem('tokenExpiration', expirationDate.toString());
             console.log('Token saved successfully.');
           } catch (error) {
             console.log('Error saving token data:', error);
           }
         };
 
-        // Appelle la fonction pour vérifier
         checkStoredData();
         saveTokenData();
 

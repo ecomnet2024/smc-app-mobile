@@ -16,53 +16,6 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const [isTokenChecked, setIsTokenChecked] = useState(false); // État pour savoir si la vérification est terminée
 
-  // Fonction pour vérifier si le token a expiré
- /* const checkTokenExpiration = async () => {
-    try {
-      const tokenExpiration = await AsyncStorage.getItem('tokenExpiration');
-  
-      if (tokenExpiration) {
-        const currentTime = Math.floor(Date.now() / 1000); // Temps actuel en secondes
-        const expirationTime = parseInt(tokenExpiration, 10); // Convertir en entier
-  
-        if (currentTime > expirationTime) {
-          Alert.alert('Session Expired', 'Your session has expired. Please log in again.');
-          // Rediriger l'utilisateur vers la page de login
-          navigation.navigate('Login');
-        } else {
-          console.log('Token is still valid.');
-        }
-      } else {
-        console.log('No token expiration found.');
-      }
-    } catch (error) {
-      console.error('Error checking token expiration:', error);
-    }
-  };
-  */
-  
-  
-  // Utilisation du hook useEffect pour vérifier l'expiration dès que la page est chargée
- /* useEffect(() => {
-    setTimeout(() => {
-      checkTokenExpiration(); // Ajoute un délai pour la vérification
-    }, 1000); // Délai d'une seconde avant la vérification
-  }, []);
-
-  // Si le token n'a pas encore été vérifié, on peut afficher un écran de chargement
-  if (!isTokenChecked) {
-    return (
-    
-      <View>
-        <Text>Chargement...</Text>
-      </View>
-      
-    );
-  }
-  */
-
-
-
 
   const [userEmail, setUserEmail] = useState('');
   useEffect(() => {
@@ -160,7 +113,7 @@ const HomeScreen = () => {
         
         <TouchableOpacity style= {styles.button}>
         <Image source={require('../assets/pregnant woman_6226304.png')} style={styles.logo2} />
-          <Text style={styles.buttonText2}>Pregnant</Text>
+          <Text style={styles.buttonText2}>Emergency</Text>
         </TouchableOpacity>
        </View>
 

@@ -31,24 +31,84 @@ mutation Mutation($record: CreateOneUserInput!) {
 export const CREATE_CONSULTATION = gql`
 mutation Mutation($record: CreateOneConsultationInput!) {
   consultationCreateOne(record: $record) {
-    recordId
     error {
+      message
       ... on ValidationError {
         message
       }
+      ... on MongoError {
+        message
+      }
+      ... on RuntimeError {
+        message
+      }
     }
+    recordId
     record {
       _id
-      allergies
-      createdAt
+      blood_pressure
+      complain
       doctor
-      labResults
-      medications
-      note
       patient
-      vaccinations
+      pulse
+      status
+      temperature
+      medications
+      prescriptions
     }
   }
 }
 
+`
+export const CREATE_PRESCRIPTION = gql`
+mutation Mutation($record: CreateOnePrescriptionInput!) {
+  prescriptionCreateOne(record: $record) {
+    record {
+      Contraindications
+      start_date
+      medication
+      end_date
+      dosage
+      createdAt
+      _id
+    }
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+      ... on MongoError {
+        message
+      }
+      ... on RuntimeError {
+        message
+      }
+    }
+    recordId
+  }
+}
+`
+export const CREATE_PATIENT = gql`
+mutation Mutation($record: CreateOnePatientInput!) {
+  patientCreateOne(record: $record) {
+    error {
+      message
+      ... on ValidationError {
+        errors {
+          message
+        }
+      }
+    }
+    record {
+      _id
+      age
+      createdAt
+      gender
+      location
+      name
+      status
+    }
+    recordId
+  }
+}
 `
