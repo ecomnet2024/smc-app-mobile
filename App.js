@@ -63,7 +63,7 @@ function SplashScreen({ navigation }) {
   // Rediriger vers la page d'accueil après 3 secondes
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.replace('GetStarted'); // Remplace l'écran Splash par GetStarted
+      navigation.replace('Login'); // Remplace l'écran Splash par GetStarted
     }, 3000); // 3000 ms = 3 secondes
 
     return () => clearTimeout(timer); // Nettoyage du timer
