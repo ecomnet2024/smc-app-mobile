@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
+import Testconsult from '../../Components/testconsult'
 
 
 const HomeScreen = () => {
@@ -38,7 +39,7 @@ const HomeScreen = () => {
 
 
   const handleNewConsultation=()=>{
-     navigation.navigate("NewConsultation");
+     navigation.navigate("NewPatient");
   }
 
 
@@ -120,6 +121,8 @@ const HomeScreen = () => {
        <View style={styles.textContainer}>
        <Text style={styles.title}> recent consultations </Text>
        </View>
+
+       <Testconsult />
 
     </SafeAreaView>
     </GestureHandlerRootView>

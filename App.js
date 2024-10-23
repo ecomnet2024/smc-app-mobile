@@ -16,6 +16,7 @@ import PhoneScreen from './src/Screens/PhoneScreen';
 import NotificationScreen from './src/Screens/NotificationScreen';
 import SettingScreen from './src/Screens/SettingScreen';
 import NewConsultationScreen from './src/Screens/NewConsultationScreen';
+import NewPatientScreen from './src/Screens/NewPatientScreen';
 import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -119,6 +120,7 @@ function AuthStack() {
       <Stack.Screen name='Home' options={{headerShown:false}} component={HomeScreen} />
       <Stack.Screen name='NewConsultation' options={{headerShown:false}} component={NewConsultationScreen} />
       <Stack.Screen name="HomeTabs" options={{ headerShown: false }} component={HomeTabNavigator} />
+      <Stack.Screen name="NewPatient" options={{ headerShown: false }} component={NewPatientScreen} />
 
     </Stack.Navigator>
   );

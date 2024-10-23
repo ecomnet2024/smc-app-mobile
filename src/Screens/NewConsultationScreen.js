@@ -1,136 +1,159 @@
-import { StyleSheet, Text, View , ScrollView} from 'react-native'
+import { StyleSheet, Text, View , ScrollView, Pressable, Platform, Alert} from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Image } from 'react-native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { useMutation } from '@apollo/client';
-import { CREATE_CONSULTATION, CREATE_PRESCRIPTION, CREATE_PATIENT } from '../Screens/graphql/Mutation';
+import { CREATE_CONSULTATION} from '../Screens/graphql/Mutation';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {jwtDecode} from 'jwt-decode';
+
 
 
 const NewConsultationScreen = () => {
 
+  const route = useRoute();
+
+  const { patientId } = route.params;
+  const { patientData } = route.params; // Récupérer les données du patient
+  const { name, age, gender, location } = patientData || {}; // Déstructurer les données
+
+
+  useEffect(() => {
+    console.log('ID du patient reçu:', patientId);
+  }, []);
+
 
   const navigation = useNavigation();
 
+
+  const getDoctorIdFromToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      console.log("Token_present",token);
+      
+      if (token) {
+        const tokenString = String(token)
+        const decodedToken = jwtDecode(tokenString);
+        const doctorId = decodedToken.user_id;
+        console.log("token decode",decodedToken);
+        return doctorId;
+
+      } else {
+        console.error("Token not found");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+  
+
+
   const [consultationData, setConsultationData] = useState({
-    blood_pressure: '',
-    complain: '',
-    pulse: '',
     temperature: '',
-  });
-  // État pour les données du patient
-  const [patientData, setPatientData] = useState({
-    name: '',
-    age: '',
-    gender: '',
-    location: '',
-    status: '',
-  });
-  // État pour les données de la prescription
-  const [prescriptionData, setPrescriptionData] = useState({
-    medication: '',
+    complain: '',
+    allergies: '',
+    medications: '',
     dosage: '',
-    start_date: '',
-    end_date: '',
-    contraindications: '',
+    //Contraindications: '',
+    pulse: '',
+    blood_pressure: '',
+   // surgical_history: '',
+   // emergency: false,
+    start_date: new Date(),
+    end_date: new Date(),
+    status:'New',
   });
 
-   // Options pour le champ Gender
-   const genderOptions = [
-    { key: 'M', value: 'M' },
-    { key: 'F', value: 'F' },
-  ];
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  // Options pour le champ Status
-  const statusOptions = [
-    { key: 'New', value: 'New' },
-    { key: 'Returning', value: 'Returning' },
-  ];
+  const handleInputChange = (field, value) => {
+    setConsultationData({ ...consultationData, [field]: value });
+  };
 
-  /*let value = {
-    name: patientData.name,
-    age: patientData.age,
-    gender:patientData.gender,
-    location: patientData.location,
-    status: patientData.status,
-    medication: prescriptionData.medication,
-    dosage: prescriptionData.dosage,
-    start_date: prescriptionData.start_date,
-    end_date: prescriptionData.end_date,
-    contraindications: prescriptionData.contraindications,
-    blood_pressure: consultationData.blood_pressure,
-    complain: consultationData.complain,
-    pulse: consultationData.pulse,
-    temperature: consultationData.temperature,
-  }*/
+  const onStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    setConsultationData({ ...consultationData, start_date: selectedDate });
+  };
+
+  const onEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(false);
+    setConsultationData({ ...consultationData, end_date: selectedDate });
+  };
+
+  const [date, setDate] = useState(new Date());
+  
+
 
   // Mutations GraphQL
-  const [createPatient] = useMutation(CREATE_PATIENT);
-  const [createConsultation] = useMutation(CREATE_CONSULTATION);
-  const [createPrescription] = useMutation(CREATE_PRESCRIPTION);
+ const [consultationCreateOne,{data}] = useMutation(CREATE_CONSULTATION);
+ 
 
   const handleSubmit = async () => {
      // Logs pour vérifier les données du formulaire
      console.log('Consultation Data:', consultationData);
-     console.log('Patient Data:', patientData);
-     console.log('Prescription Data:', prescriptionData);
+     if (!consultationData.temperature || !consultationData.complain || !consultationData.pulse || !consultationData.blood_pressure) {
+      // Gestion des erreurs si un champ est vide
+      alert('Please fill in all required fields');
+      return;
+    }
+    if (!patientId) {
+      console.error('Erreur: ID du patient manquant');
+      return;
+    }
+    const doctorId = await getDoctorIdFromToken();
+
+    if (!doctorId) {
+      Alert.alert("Error", "Unable to retrieve doctor ID");
+      return;
+    }
 
     try {
-
-      // Créer le patient
-      const patientResult = await createPatient({
+      const result = await consultationCreateOne({
         variables: {
           record: {
-            name: patientData.name,
-            age: parseFloat(patientData.age),
-            gender: patientData.gender,
-            location: patientData.location,
-            status: patientData.status,
+            doctor: doctorId, // ID du docteur connecté (récupérer dynamiquement)
+            patient: patientId,
+            temperature: parseFloat(consultationData.temperature),
+            complain: consultationData.complain,
+            allergies: consultationData.allergies,
+            medications: consultationData.medications,
+            dosage: consultationData.dosage,
+            start_date: consultationData.start_date,
+            end_date: consultationData.end_date,
+            pulse: parseFloat(consultationData.pulse),
+            blood_pressure: consultationData.blood_pressure,
+            status: consultationData.status,
+           // surgical_history: consultationData.surgical_history,
+           // emergency: consultationData.emergency,
           },
         },
       });
-      const patientId = patientResult.data.patientCreateOne.record._id;
+      if (result.data && result.data.consultationCreateOne) {
+        Alert.alert("Consultation Created", "Your consultation has been created successfully.");
+        
+        // Passer les données de consultation à la page d'accueil
+        navigation.navigate('Home', { consultationData: result.data.consultationCreateOne.record });
+      } else {
+        throw new Error("Error creating consultation");
+      }
+      console.log('Consultation created:', result);
+      console.log("datamutation",data);
 
-      // Log avant d'envoyer la mutation de consultation
-  console.log('Sending consultation mutation...');
-
-  // Créer la prescription
-  const prescriptionResult = await createPrescription({
-    variables: {
-      record: {
-        medication: prescriptionData.medication,
-        dosage: prescriptionData.dosage,
-        start_date: prescriptionData.start_date,
-        end_date: prescriptionData.end_date,
-        Contraindications: prescriptionData.contraindications,
-      },
-    },
-  });
-
-  const prescriptionId = prescriptionResult.data.prescriptionCreateOne.record._id;
-
-     // Créer la consultation
- await createConsultation({
-  variables: {
-    record: {
-      blood_pressure: consultationData.blood_pressure,
-      complain: consultationData.complain,
-      pulse: parseFloat(consultationData.pulse),
-      temperature: parseFloat(consultationData.temperature),
-      patient: patientId,
-      prescriptions: [prescriptionId],
-      status: patientData.status, // Même statut pour la consultation
-    },
-  },
-});
-console.log('Consultation, Patient, and Prescription created successfully');
-} catch (error) {
-console.error('Error creating consultation or prescription:', error);
-}
+      // Rediriger ou afficher une confirmation
+    } catch (error) {
+      console.error('Error creating consultation:', error);
+      Alert.alert("Error", "There was a problem creating your consultation.");
+    }
 
   };
 
@@ -148,51 +171,29 @@ console.error('Error creating consultation or prescription:', error);
       </TouchableOpacity>
 
     </View>
-      
-      {/* Image au-dessus */}
-      <Image
+
+     {/* Image au-dessus */}
+     <Image
         source={require('../assets/undraw_medicine_b1ol.png')}
         style={styles.image}
       />
 
+     {/* Affichage des informations du patient */}
+     <View style={styles.patientInfo}>
+        {patientData ? (
+          <>
+            <Text>Nom: {name}</Text>
+            <Text>Âge: {age}</Text>
+            <Text>Genre: {gender}</Text>
+            <Text>Localisation: {location}</Text>
+          </>
+        ) : (
+          <Text>Aucune donnée du patient disponible.</Text>
+        )}
+      </View>
+
    {/* Formulaire stylisé dans un bloc */}
    <View style={styles.formContainer}>
-
-         {/* Patient Section */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>Patient information</Text>
-
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={styles.input}
-          value={patientData.name}
-          onChangeText={(value) => setPatientData({ ...patientData, name: value })}
-        />
-
-        <Text style={styles.label}>Age</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={patientData.age}
-          onChangeText={(value) => setPatientData({ ...patientData, age: parseFloat(value) })}
-        />
-
-        <Text style={styles.label}>Gender</Text>
-        <SelectList
-          setSelected={(val) => setPatientData({ ...patientData, gender: val })}
-          data={genderOptions}
-          placeholder="Select Gender"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        />
-
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={styles.input}
-          value={patientData.location}
-          onChangeText={(value) => setPatientData({ ...patientData, location: value })}
-        />
-      </View>
 
          {/* Consultation Section */}
       <View style={styles.section}>
@@ -230,61 +231,68 @@ console.error('Error creating consultation or prescription:', error);
           onChangeText={(value) => setConsultationData({ ...consultationData, temperature: parseFloat(value) })}
         />
 
-        <Text style={styles.label}>Status</Text>
-        <SelectList
-          setSelected={(val) => setPatientData({ ...patientData, status: val })}
-          data={statusOptions}
-          placeholder="Select Status"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        />
-      </View>
-
-      {/* Prescription Section */}
-      <View style={styles.section}>
-        <Text style={styles.heading}>Prescription</Text>
-
-        <Text style={styles.label}>Medication</Text>
+        <Text style={styles.label}>Blood Pressure</Text>
         <TextInput
           style={styles.input}
-          value={prescriptionData.medication}
-          onChangeText={(value) => setPrescriptionData({ ...prescriptionData, medication: value })}
+          value={consultationData.blood_pressure}
+          onChangeText={(text) => setConsultationData({ ...consultationData, blood_pressure: text })}
+          placeholder="Enter blood pressure"
+        />
+
+        <Text style={styles.label}>Medications</Text>
+        <TextInput
+          style={styles.input}
+          value={consultationData.medications}
+          onChangeText={(text) => setConsultationData({ ...consultationData, medications: text })}
+          placeholder="Enter medications"
         />
 
         <Text style={styles.label}>Dosage</Text>
         <TextInput
           style={styles.input}
-          value={prescriptionData.dosage}
-          onChangeText={(value) => setPrescriptionData({ ...prescriptionData, dosage: value })}
+          value={consultationData.dosage}
+          onChangeText={(text) => setConsultationData({ ...consultationData, dosage: text })}
+          placeholder="Enter dosage"
         />
 
-        <Text style={styles.label}>Start Date</Text>
+        <Text style={styles.label}>allergies</Text>
         <TextInput
           style={styles.input}
-          value={prescriptionData.start_date}
-          onChangeText={(value) => setPrescriptionData({ ...prescriptionData, start_date: value })}
+          value={consultationData.allergies}
+          onChangeText={(text) => setConsultationData({ ...consultationData, allergies: text })}
+          placeholder="Enter allergies"
         />
 
-        <Text style={styles.label}>End Date</Text>
-        <TextInput
-          style={styles.input}
-          value={prescriptionData.end_date}
-          onChangeText={(value) => setPrescriptionData({ ...prescriptionData, end_date: value })}
-        />
+        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
+          <Text>Start Date: {consultationData.start_date.toLocaleDateString()}</Text>
+        </TouchableOpacity>
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={consultationData.start_date}
+            mode="date"
+            display="default"
+            onChange={onStartDateChange}
+          />
+        )}
 
-        <Text style={styles.label}>Contraindications</Text>
-        <TextInput
-          style={styles.textArea}
-          value={prescriptionData.contraindications}
-          multiline
-          numberOfLines={4}
-          onChangeText={(value) => setPrescriptionData({ ...prescriptionData, contraindications: value })}
-        />
+         <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.dateButton}>
+          <Text>End Date: {consultationData.end_date.toLocaleDateString()}</Text>
+        </TouchableOpacity>
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={consultationData.end_date}
+            mode="date"
+            display="default"
+            onChange={onEndDateChange}
+          />
+        )}
+
+
+      </View>
+
         <TouchableOpacity style= {styles.signInButton} onPress={handleSubmit} >
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
-
-        </View>
 
     </View>
     </ScrollView>
@@ -307,10 +315,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginHorizontal: 10,
   },
-
   image: {
-    width: '95%',
-    height: 190, // Taille de l'image en haut
+    width: '85%',
+    height: 160, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
   },
   formContainer: {
@@ -405,6 +412,33 @@ const styles = StyleSheet.create({
   },
   dropdownList: {
     backgroundColor: '#f9f9f9',
+  },
+  patientInfo: {
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  patientInfoText: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  card: {
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  dateButton: {
+    padding: 15,
+    backgroundColor: '#ddd',
+    marginBottom: 10,
+    borderRadius: 5,
   },
 
 })

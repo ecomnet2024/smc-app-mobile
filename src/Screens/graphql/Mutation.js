@@ -29,32 +29,20 @@ mutation Mutation($record: CreateOneUserInput!) {
   }
 `
 export const CREATE_CONSULTATION = gql`
-mutation Mutation($record: CreateOneConsultationInput!) {
+mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
   consultationCreateOne(record: $record) {
-    error {
-      message
-      ... on ValidationError {
-        message
-      }
-      ... on MongoError {
-        message
-      }
-      ... on RuntimeError {
-        message
-      }
-    }
-    recordId
     record {
       _id
-      blood_pressure
-      complain
       doctor
       patient
-      pulse
-      status
       temperature
+      blood_pressure
+      complain
+      pulse
       medications
-      prescriptions
+      dosage
+      start_date
+      end_date
     }
   }
 }
@@ -101,14 +89,12 @@ mutation Mutation($record: CreateOnePatientInput!) {
     }
     record {
       _id
+      name
       age
-      createdAt
       gender
       location
-      name
       status
     }
-    recordId
   }
 }
 `

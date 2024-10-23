@@ -13,4 +13,14 @@ query Query {
   
 
 `
+export const GET_CONSULTATION = gql`
+query consultationMany {
+  consultationMany {
+    patient
+    complain
+    medications
+    dosage
+    
+  }
+}`
 ;
