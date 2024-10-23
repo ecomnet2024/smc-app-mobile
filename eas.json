@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "build": {
     "preview": {
       "android": {
@@ -16,6 +17,25 @@
     "preview4": {
       "distribution": "internal"
     },
+=======
+  "cli": {
+    "version": ">= 12.6.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+>>>>>>> origin/SousBranche
     "production": {}
   }
 }
