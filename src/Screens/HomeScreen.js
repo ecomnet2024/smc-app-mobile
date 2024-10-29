@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React,  { useEffect }  from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
+import { GestureHandlerRootView, TouchableOpacity, TextInput, ScrollView } from 'react-native-gesture-handler'
 import { Image } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useState } from 'react'
@@ -46,6 +46,7 @@ const HomeScreen = () => {
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
 
       <View>
 
@@ -124,6 +125,7 @@ const HomeScreen = () => {
 
        <Testconsult />
 
+    </ScrollView>
     </SafeAreaView>
     </GestureHandlerRootView>
   )
@@ -135,6 +137,11 @@ const HomeScreen = () => {
 export default HomeScreen
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+   // flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     justifyContent: 'flex-start',

@@ -52,20 +52,20 @@ export default Testconsult
 const styles = StyleSheet.create({
   container:{
     flex: 1,
-    marginTop: 12,
-    marginHorizontal: 10,
+    marginTop: 2,
+    marginHorizontal: 11,
     color:"#B8DFF3",
   },
   consultationCard: {
     backgroundColor: '#f9f9f9',
-    padding: 15,
-    marginVertical: 8,
+    padding: 12,
+    marginVertical: 2,
     borderRadius: 10,
     elevation: 3, // For Android shadow
   },
   title: {
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 3,
   },
   emptyText: {
     textAlign: 'center',

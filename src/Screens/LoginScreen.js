@@ -48,11 +48,12 @@ const LoginScreen = () => {
                   password: password,
                 },
               });
+                console.log('Response:', response);  // Vérifie la structure ici
 
                 const userData = response.data.userLogin;
             if (userData.success) {
             const email = userData.user.email;  // Vérifie la structure de la réponse
-            const token = userData.token;       // Vérifie que tu reçois bien un token
+            const token = userData.token;       // Vérifie un token
                console.log('User email:', email);
                 console.log('User token:', token);
               
@@ -72,11 +73,11 @@ const LoginScreen = () => {
 
 
               } else {
-                Alert.alert('Login failed', data.userLogin.message);
+                Alert.alert('Login failed','Bad email or password, try again' );
               }
             } catch (e) {
               console.error('Error during login:', e);
-              Alert.alert('Login Error', e.message);
+              Alert.alert('Login Error', e.message + 'An error occurred, please try again later.');
             }
           }
 
