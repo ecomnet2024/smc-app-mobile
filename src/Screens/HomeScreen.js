@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, Button } from 'react-native'
 import React,  { useEffect }  from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput, ScrollView } from 'react-native-gesture-handler'
@@ -9,11 +9,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
-import Testconsult from '../../Components/testconsult'
+import Testconsult from '../../Components/testconsult';
+import { GET_CONSULTATION } from '../Screens/graphql/Queries';
+import { useQuery } from '@apollo/client'
 
 
 const HomeScreen = () => {
 
+  const { loading, error, data } = useQuery(GET_CONSULTATION);
   const navigation = useNavigation();
   const [isTokenChecked, setIsTokenChecked] = useState(false); // État pour savoir si la vérification est terminée
 
@@ -46,7 +49,7 @@ const HomeScreen = () => {
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
+    <ScrollView>
 
       <View>
 
@@ -90,13 +93,7 @@ const HomeScreen = () => {
 
 
         {/* Barre de recherche */}
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="gray" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search patient"
-          />
-        </View>
+        
 
         {/* Texte de bienvenue */}
         <Text style={styles.welcomeText}>Welcome back!</Text>
@@ -125,11 +122,11 @@ const HomeScreen = () => {
 
        <Testconsult />
 
-    </ScrollView>
+       </ScrollView>
+
     </SafeAreaView>
     </GestureHandlerRootView>
   )
-
 
 }
 
