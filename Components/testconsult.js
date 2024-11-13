@@ -45,7 +45,7 @@ const renderConsultation = ({ item }) => {
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
     <TouchableOpacity 
-        onPress={() => navigation.navigate('Details', { consultation: item ,  patientId: item.patient._id,})}
+        onPress={() => navigation.navigate('Details', { consultation: item ,  patient: item,})}
         style={styles.consultationCard}
     >
         <Text style={styles.title}>Patient: {patientName}</Text>

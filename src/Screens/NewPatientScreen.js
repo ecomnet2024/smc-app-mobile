@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PATIENT } from '../Screens/graphql/Mutation';
+import { GET_CLINIC } from '../Screens/graphql/Queries';
 import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -18,10 +19,19 @@ const CreatePatientForm = () => {
     age: '',
     gender: '',
     email: '',
+    clinic:'',
     phone: '',
     status: '',
   });
   const [createPatient] = useMutation(CREATE_PATIENT);
+
+  const { data, loading, error } = useQuery(GET_CLINIC);
+
+const clinicOptions = data?.clinicMany?.map(clinic => ({
+  key: clinic._id,
+  value: clinic.name, // ou tout autre champ représentatif de la clinique
+})) || [];
+
 
    // Options pour le champ Gender
    const genderOptions = [
@@ -42,7 +52,9 @@ const CreatePatientForm = () => {
       !patientData.name ||
       !patientData.age ||
       !patientData.gender ||
-      !patientData.status
+      !patientData.status ||
+      !patientData.phone ||
+      !patientData.clinic 
     ) {
       // Gestion des erreurs si un champ est vide
       alert('Please fill in all required fields');
@@ -56,6 +68,7 @@ const CreatePatientForm = () => {
             name: patientData.name,
             age: parseFloat(patientData.age),
             gender: patientData.gender,
+            clinic: patientData.clinic,
             email: patientData.email,
             phone: patientData.phone,
             status: patientData.status,
@@ -65,11 +78,11 @@ const CreatePatientForm = () => {
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
       console.log("PatientData",result);
       if (result.data && result.data.patientCreateOne && result.data.patientCreateOne.record) {
-        const patientId = result.data.patientCreateOne.record._id;
-        console.log('Patient ID:', patientId);
+        const patient = result.data.patientCreateOne.record;
+        console.log('Patient ID:', patient);
   
         // Redirection vers la page consultation en passant l'ID du patient
-      navigation.navigate('NewConsultation', { patientId: patientId ,
+      navigation.navigate('NewConsultation', { patient: patient ,
       patientData: result.data.patientCreateOne.record,});
     } else {
         console.error('Erreur: la mutation n’a pas renvoyé de patient.');
@@ -88,7 +101,7 @@ const CreatePatientForm = () => {
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={35} color="gray" />
+        <Ionicons name="chevron-back-circle" size={38} color="gray" />
       </TouchableOpacity>
 
      </View>
@@ -146,6 +159,16 @@ const CreatePatientForm = () => {
           keyboardType="phone-pad"
         />
 
+         <Text style={styles.label}>Clinic</Text>
+       <SelectList
+         setSelected={(val) => setPatientData({ ...patientData, clinic: val })}
+         data={clinicOptions}
+         placeholder="Select Clinic"
+         boxStyles={styles.dropdown}
+         dropdownStyles={styles.dropdownList}
+       />
+
+
         <Text style={styles.label}>Status</Text>
         <SelectList
           setSelected={(val) => setPatientData({ ...patientData, status: val })}
@@ -184,8 +207,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   image: {
-    width: '95%',
-    height: 190, // Taille de l'image en haut
+    width: '75%',
+    height: 170, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
   },
   formContainer: {

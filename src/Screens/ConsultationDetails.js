@@ -4,18 +4,29 @@ import React from 'react'
 import { useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
-import { CREATE_PATIENT } from '../Screens/graphql/Mutation';
 import { CREATE_CONSULTATION } from '../Screens/graphql/Mutation';
 import { GET_CONSULTATION_BY_PATIENT } from '../Screens/graphql/Queries';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
+import { SelectList } from 'react-native-dropdown-select-list';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native'
+
 
 const ConsultationDetails = ({ route }) => {
 
+  const navigation = useNavigation();
+
    // Récupérer la consultation passée en paramètre
-   const { consultation, patientId } = route.params;
-   console.log("Consultation Details Patient ID:", patientId); // Vérifier si `patientId` est bien reçu
+   const { consultation, patient } = route.params;
+   console.log("Consultation Details Patient :", consultation.patient); 
    console.log("Consultation Details Consultation:", consultation);
+   
+   let patientId= consultation.patient._id;
+   let patientObj= consultation.patient;
+   console.log("Consultation Details PatientID :", patientId);
+   console.log("Consultation Details Patient object :", patientObj);
    
   const { loading, error, data } = useQuery(GET_CONSULTATION_BY_PATIENT, {
     variables: { patientId },
@@ -23,22 +34,25 @@ const ConsultationDetails = ({ route }) => {
   
   // États pour les modales
   const [isConsultationModalVisible, setConsultationModalVisible] = useState(false);
-  const [isPatientModalVisible, setPatientModalVisible] = useState(false);
 
   // États pour les nouveaux formulaires
   const [newConsultationData, setNewConsultationData] = useState({
     complain: '',
     blood_pressure: '',
     pulse: '',
+    createdAt: new Date(),
     temperature: '',
-    status: ''
+    status: 'New'
   });
-  const [newPatientData, setNewPatientData] = useState({
-    name: '',
-    age: '',
-    gender: '',
-    location: ''
-  });
+
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+
+  const onStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    setNewConsultationData({ ...newConsultationData, createdAt: selectedDate });
+  };
+  const [date, setDate] = useState(new Date());
+
 
  // Hook Apollo pour la mutation de création de consultation
  const [consultationCreateOne, { loading: loadingConsultation, error: errorConsultation }] = useMutation(CREATE_CONSULTATION);
@@ -83,6 +97,7 @@ const ConsultationDetails = ({ route }) => {
          pulse: parseFloat(newConsultationData.pulse),
          temperature: parseFloat(newConsultationData.temperature),
          status: newConsultationData.status,
+         createdAt: newConsultationData.createdAt,
          patient: patientId,  // Utiliser l'ID du patient actuel
          doctor: doctorId
          }
@@ -96,9 +111,12 @@ const ConsultationDetails = ({ route }) => {
    }
 };
 
- const handleAddPatient = async () => {
-  ////////////////
- };
+// Options pour le champ Status
+const statusOptions = [
+  { key: 'New', value: 'New' },
+  { key: 'In_Review', value: 'In_Review' },
+  { key: 'Closed', value: 'Closed' },
+];
 
 
   const getDoctorIdFromToken = async () => {
@@ -131,8 +149,13 @@ const ConsultationDetails = ({ route }) => {
     {loading && <Text>Loading...</Text>}
       {error && <Text>Error: {error.message}</Text>}
 
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()} >
+        <Ionicons name="chevron-back-circle" size={40} color="gray" />
+      </TouchableOpacity>
+
       {!loading && !error && data?.consultationMany && data.consultationMany.length > 0 ? (
-       
       <ScrollView>
       {data.consultationMany.map((consultation) => (
     <View key={consultation._id} style={styles.detailCard}>
@@ -161,7 +184,8 @@ const ConsultationDetails = ({ route }) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => setPatientModalVisible(true)}>
+              onPress={() => navigation.navigate('NewPatient')}
+              >
               <Text style={styles.buttonText}>Add Patient</Text>
             </TouchableOpacity>
 
@@ -183,27 +207,44 @@ const ConsultationDetails = ({ route }) => {
                 <TextInput
                   style={styles.input}
                   placeholder="Blood Pressure"
+                  keyboardType='numeric'
                   value={newConsultationData.blood_pressure}
                   onChangeText={(text) => setNewConsultationData({ ...newConsultationData, blood_pressure: text })}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Pulse"
+                  keyboardType='numeric'
                   value={newConsultationData.pulse}
                   onChangeText={(text) => setNewConsultationData({ ...newConsultationData, pulse: text })}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Temperature"
+                  keyboardType='numeric'
                   value={newConsultationData.temperature}
                   onChangeText={(text) => setNewConsultationData({ ...newConsultationData, temperature: text })}
                 />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Status"
-                  value={newConsultationData.status}
-                  onChangeText={(text) => setNewConsultationData({ ...newConsultationData, status: text })}
-                />
+
+         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
+          <Text>Date of creation: {newConsultationData.createdAt.toLocaleDateString()}</Text>
+        </TouchableOpacity>
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={newConsultationData.createdAt}
+            mode="date"
+            display="default"
+            onChange={onStartDateChange}
+          />
+        )}
+
+        <SelectList
+          setSelected={(val) => setNewConsultationData({ ...newConsultationData, status: val })}
+          data={statusOptions}
+          placeholder="Select Status"
+          boxStyles={styles.dropdown}
+          dropdownStyles={styles.dropdownList}
+        />
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleAddConsultation}>
@@ -301,14 +342,14 @@ input: {
 submitButton: {
   backgroundColor: '#2ecc71',
   padding: 12,
-  borderRadius: 8,
+  borderRadius: 25,
   alignItems: 'center',
   marginTop: 10,
 },
 cancelButton: {
   backgroundColor: '#e74c3c',
   padding: 12,
-  borderRadius: 8,
+  borderRadius: 25,
   alignItems: 'center',
   marginTop: 10,
 },
@@ -316,6 +357,12 @@ cancelButtonText: {
   color: 'white',
   fontSize: 16,
   fontWeight: 'bold',
+},
+dateButton: {
+  padding: 15,
+  backgroundColor: '#ddd',
+  marginBottom: 10,
+  borderRadius: 5,
 },
 modalText: {
   fontSize: 16,

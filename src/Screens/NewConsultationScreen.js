@@ -20,14 +20,9 @@ const NewConsultationScreen = () => {
 
   const route = useRoute();
 
-  const { patientId } = route.params;
+  const { patient } = route.params;
   const { patientData } = route.params; // Récupérer les données du patient
-  const { name, age, gender, location } = patientData || {}; // Déstructurer les données
-
-
-  useEffect(() => {
-    console.log('ID du patient reçu:', patientId);
-  }, []);
+  const { name, age, gender} = patientData || {}; // Déstructurer les données
 
 
   const navigation = useNavigation();
@@ -60,21 +55,17 @@ const NewConsultationScreen = () => {
   const [consultationData, setConsultationData] = useState({
     temperature: '',
     complain: '',
-    allergies: '',
-    medications: '',
-    dosage: '',
-    //Contraindications: '',
+    //allergies: '',
+    //medications: '',
     pulse: '',
     blood_pressure: '',
    // surgical_history: '',
    // emergency: false,
-    start_date: new Date(),
-    end_date: new Date(),
+    createdAt: new Date(),
     status:'New',
   });
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   const handleInputChange = (field, value) => {
     setConsultationData({ ...consultationData, [field]: value });
@@ -82,20 +73,20 @@ const NewConsultationScreen = () => {
 
   const onStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(false);
-    setConsultationData({ ...consultationData, start_date: selectedDate });
+    setConsultationData({ ...consultationData, createdAt: selectedDate });
   };
-
-  const onEndDateChange = (event, selectedDate) => {
-    setShowEndDatePicker(false);
-    setConsultationData({ ...consultationData, end_date: selectedDate });
-  };
-
   const [date, setDate] = useState(new Date());
   
 
-
   // Mutations GraphQL
  const [consultationCreateOne,{data}] = useMutation(CREATE_CONSULTATION);
+
+ // Options pour le champ Status
+ const statusOptions = [
+  { key: 'New', value: 'New' },
+  { key: 'In_Review', value: 'In_Review' },
+  { key: 'Closed', value: 'Closed' },
+];
  
 
   const handleSubmit = async () => {
@@ -106,11 +97,27 @@ const NewConsultationScreen = () => {
       alert('Please fill in all required fields');
       return;
     }
-    if (!patientId) {
-      console.error('Erreur: ID du patient manquant');
+
+  // Vérification des valeurs spécifiques
+  const temperature = parseFloat(consultationData.temperature);
+  if (temperature < 30 || temperature > 42) {
+    Alert.alert("Error", " temperature must be between 30°C and 42°C");
+    return;
+  }
+
+  const pulse = parseFloat(consultationData.pulse);
+  if (pulse < 40 || pulse > 180) {
+    Alert.alert("Error", "Pulse must be between 40 and 180 bpm");
+    return;
+  }
+
+    if (!patient) {
+      console.error('Erreur: patient manquant');
       return;
     }
     const doctorId = await getDoctorIdFromToken();
+    let patientID = patient._id;
+
 
     if (!doctorId) {
       Alert.alert("Error", "Unable to retrieve doctor ID");
@@ -122,17 +129,13 @@ const NewConsultationScreen = () => {
         variables: {
           record: {
             doctor: doctorId, // ID du docteur connecté (récupérer dynamiquement)
-            patient: patientId,
+            patient: patientID,
             temperature: parseFloat(consultationData.temperature),
             complain: consultationData.complain,
-            allergies: consultationData.allergies,
-            medications: consultationData.medications,
-            dosage: consultationData.dosage,
-            start_date: consultationData.start_date,
-            end_date: consultationData.end_date,
             pulse: parseFloat(consultationData.pulse),
             blood_pressure: consultationData.blood_pressure,
             status: consultationData.status,
+            createdAt: consultationData.createdAt,
            // surgical_history: consultationData.surgical_history,
            // emergency: consultationData.emergency,
           },
@@ -156,6 +159,8 @@ const NewConsultationScreen = () => {
     }
 
   };
+
+
 
 
   return (
@@ -185,7 +190,6 @@ const NewConsultationScreen = () => {
             <Text>Nom: {name}</Text>
             <Text>Âge: {age}</Text>
             <Text>Genre: {gender}</Text>
-            <Text>Localisation: {location}</Text>
           </>
         ) : (
           <Text>Aucune donnée du patient disponible.</Text>
@@ -198,13 +202,6 @@ const NewConsultationScreen = () => {
          {/* Consultation Section */}
       <View style={styles.section}>
         <Text style={styles.heading}>Consultation</Text>
-
-        <Text style={styles.label}>Blood Pressure</Text>
-        <TextInput
-          style={styles.input}
-          value={consultationData.blood_pressure}
-          onChangeText={(value) => setConsultationData({ ...consultationData, blood_pressure: value })}
-        />
 
         <Text style={styles.label}>Complaint</Text>
         <TextInput
@@ -239,54 +236,26 @@ const NewConsultationScreen = () => {
           placeholder="Enter blood pressure"
         />
 
-        <Text style={styles.label}>Medications</Text>
-        <TextInput
-          style={styles.input}
-          value={consultationData.medications}
-          onChangeText={(text) => setConsultationData({ ...consultationData, medications: text })}
-          placeholder="Enter medications"
-        />
-
-        <Text style={styles.label}>Dosage</Text>
-        <TextInput
-          style={styles.input}
-          value={consultationData.dosage}
-          onChangeText={(text) => setConsultationData({ ...consultationData, dosage: text })}
-          placeholder="Enter dosage"
-        />
-
-        <Text style={styles.label}>allergies</Text>
-        <TextInput
-          style={styles.input}
-          value={consultationData.allergies}
-          onChangeText={(text) => setConsultationData({ ...consultationData, allergies: text })}
-          placeholder="Enter allergies"
-        />
-
         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
-          <Text>Start Date: {consultationData.start_date.toLocaleDateString()}</Text>
+          <Text>Date of creation: {consultationData.createdAt.toLocaleDateString()}</Text>
         </TouchableOpacity>
         {showStartDatePicker && (
           <DateTimePicker
-            value={consultationData.start_date}
+            value={consultationData.createdAt}
             mode="date"
             display="default"
             onChange={onStartDateChange}
           />
         )}
 
-         <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.dateButton}>
-          <Text>End Date: {consultationData.end_date.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={consultationData.end_date}
-            mode="date"
-            display="default"
-            onChange={onEndDateChange}
-          />
-        )}
-
+        <Text style={styles.label}>Status</Text>
+        <SelectList
+          setSelected={(val) => setConsultationData({ ...consultationData, status: val })}
+          data={statusOptions}
+          placeholder="Select Status"
+          boxStyles={styles.dropdown}
+          dropdownStyles={styles.dropdownList}
+        />
 
       </View>
 
@@ -316,9 +285,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   image: {
-    width: '85%',
-    height: 160, // Taille de l'image en haut
+    width: '70%',
+    height: 130, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
+    alignSelf: 'center'
   },
   formContainer: {
     backgroundColor: '#fff', // Fond du formulaire

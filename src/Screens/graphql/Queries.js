@@ -51,4 +51,18 @@ query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
   }
 }
 `
+export const GET_CLINIC = gql`
+
+query ClinicMany {
+  clinicMany {
+    _id
+    city
+    name
+    phoneNumber
+    region
+    street_location
+  }
+}
+
+  `
 ;

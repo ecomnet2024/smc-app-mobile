@@ -34,13 +34,18 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
     record {
       _id
       doctor
-      patient
+      patient{
+        name
+        _id
+      }
       temperature
       blood_pressure
       complain
       pulse
-      medications
+      status
+      createdAt
     }
+    recordId
   }
 }
 
