@@ -40,9 +40,6 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
       complain
       pulse
       medications
-      dosage
-      start_date
-      end_date
     }
   }
 }
@@ -92,9 +89,11 @@ mutation Mutation($record: CreateOnePatientInput!) {
       name
       age
       gender
-      location
+      clinic
       status
+      phone
     }
+    recordId
   }
 }
 `

@@ -16,11 +16,39 @@ query Query {
 export const GET_CONSULTATION = gql`
 query consultationMany {
   consultationMany {
-    patient
+    patient{
+      _id
+      name
+      createdAt
+      age
+    }
+    _id
     complain
     medications
-    dosage
+    temperature
+      blood_pressure
+      pulse
+      status
     
   }
 }`
+
+export const GET_CONSULTATION_BY_PATIENT = gql`
+query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
+  consultationMany(filter: { patient: $patientId  }) {
+    _id
+    complain
+    medications
+    temperature
+    blood_pressure
+    pulse
+    patient{
+      _id
+      name
+      createdAt
+      age
+    }
+  }
+}
+`
 ;

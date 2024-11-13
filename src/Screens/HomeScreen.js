@@ -45,7 +45,6 @@ const HomeScreen = () => {
      navigation.navigate("NewPatient");
   }
 
-
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>

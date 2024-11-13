@@ -17,10 +17,8 @@ const CreatePatientForm = () => {
     name: '',
     age: '',
     gender: '',
-    location: '',
     email: '',
     phone: '',
-   // insurance_number: '',
     status: '',
   });
   const [createPatient] = useMutation(CREATE_PATIENT);
@@ -44,7 +42,6 @@ const CreatePatientForm = () => {
       !patientData.name ||
       !patientData.age ||
       !patientData.gender ||
-      !patientData.location ||
       !patientData.status
     ) {
       // Gestion des erreurs si un champ est vide
@@ -59,10 +56,8 @@ const CreatePatientForm = () => {
             name: patientData.name,
             age: parseFloat(patientData.age),
             gender: patientData.gender,
-            location: patientData.location,
             email: patientData.email,
             phone: patientData.phone,
-           // insurance_number: patientData.insurance_number,
             status: patientData.status,
           },
         },
@@ -133,13 +128,6 @@ const CreatePatientForm = () => {
           placeholder="Select Gender"
           boxStyles={styles.dropdown}
           dropdownStyles={styles.dropdownList}
-        />
-
-        <Text style={styles.label}>Location</Text>
-        <TextInput
-          style={styles.input}
-          value={patientData.location}
-          onChangeText={(value) => setPatientData({ ...patientData, location: value })}
         />
 
         <Text style={styles.label}>Email</Text>

@@ -30,45 +30,30 @@ const Testconsult = () => {
 
 // Filtrer les consultations en fonction de searchQuery
 const filteredConsultations = consultations.filter((item) => {
-  const patientData = item.patient;
-  let patientName = "Unknown";
-
- // Extraction manuelle du nom avec une regex
- const nameMatch = patientData.match(/name:\s?'([^']+)'/);
- if (nameMatch && nameMatch[1]) {
-     patientName = nameMatch[1];
- }
-
- // Vérification si le nom du patient contient la recherche
- return patientName.toLowerCase().includes(searchQuery.toLowerCase());
-});
-
+  const patientName = item.patient?.name || "Unknown";
+    // Vérification si le nom du patient contient la recherche
+    return patientName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
 
 const renderConsultation = ({ item }) => {
-  let patientName = "Unknown";
-  const patientData = item.patient;
-
-  // Extraction manuelle du nom avec une regex
-  const nameMatch = patientData.match(/name:\s?'([^']+)'/);
-  if (nameMatch && nameMatch[1]) {
-      patientName = nameMatch[1];
-  }
+  const patientName = item.patient?.name || "Unknown";
+  const patientId = item.patient?._id;
 
 
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
     <TouchableOpacity 
-        onPress={() => navigation.navigate('Details', { consultation: item })}
+        onPress={() => navigation.navigate('Details', { consultation: item ,  patientId: item.patient._id,})}
         style={styles.consultationCard}
     >
         <Text style={styles.title}>Patient: {patientName}</Text>
         <Text>Complain: {item.complain}</Text>
-        <Text>Medications: {item.medications}</Text>
-        <Text>Dosage: {item.dosage}</Text>
-        <Text>Date: {item.date}</Text>
-        
+        <Text>Blood Pressure: {item.blood_pressure}</Text>
+        <Text>Pulse: {item.pulse}</Text>
+        <Text>Status: {item.status}</Text>
+
     </TouchableOpacity>
     </SafeAreaView>
    </GestureHandlerRootView>
