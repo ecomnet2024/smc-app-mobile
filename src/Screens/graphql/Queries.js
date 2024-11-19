@@ -63,6 +63,18 @@ query ClinicMany {
     street_location
   }
 }
+ `
+ 
+  export const GET_PATIENT = gql`
+  query PatientMany {
+    patientMany {
+      _id
+      name
+      age
+      gender
+      status
+    }
+  }
+`
 
-  `
 ;

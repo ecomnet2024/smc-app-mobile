@@ -13,6 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
+import * as ImagePicker from 'expo-image-picker';
 
 
 
@@ -51,7 +52,6 @@ const NewConsultationScreen = () => {
   };
   
 
-
   const [consultationData, setConsultationData] = useState({
     temperature: '',
     complain: '',
@@ -61,6 +61,7 @@ const NewConsultationScreen = () => {
     blood_pressure: '',
    // surgical_history: '',
    // emergency: false,
+    photo_material: '', // Stockage de l'URI de la photo
     createdAt: new Date(),
     status:'New',
   });
@@ -80,6 +81,23 @@ const NewConsultationScreen = () => {
 
   // Mutations GraphQL
  const [consultationCreateOne,{data}] = useMutation(CREATE_CONSULTATION);
+
+ // Prise de la photo
+ const handlePhotoPick = async () => {
+  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permissionResult.granted) {
+    Alert.alert('Permission Required', 'Camera access is needed to take a photo.');
+    return;
+  }
+  const photo = await ImagePicker.launchCameraAsync({
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
+  if (!photo.canceled) {
+    setConsultationData({ ...consultationData, photo_material: photo.assets[0].uri });
+  }
+};
 
  // Options pour le champ Status
  const statusOptions = [
@@ -104,7 +122,6 @@ const NewConsultationScreen = () => {
     Alert.alert("Error", " temperature must be between 30°C and 42°C");
     return;
   }
-
   const pulse = parseFloat(consultationData.pulse);
   if (pulse < 40 || pulse > 180) {
     Alert.alert("Error", "Pulse must be between 40 and 180 bpm");
@@ -117,7 +134,6 @@ const NewConsultationScreen = () => {
     }
     const doctorId = await getDoctorIdFromToken();
     let patientID = patient._id;
-
 
     if (!doctorId) {
       Alert.alert("Error", "Unable to retrieve doctor ID");
@@ -136,6 +152,7 @@ const NewConsultationScreen = () => {
             blood_pressure: consultationData.blood_pressure,
             status: consultationData.status,
             createdAt: consultationData.createdAt,
+            photo_material: consultationData.photo_material,
            // surgical_history: consultationData.surgical_history,
            // emergency: consultationData.emergency,
           },
@@ -145,8 +162,8 @@ const NewConsultationScreen = () => {
         Alert.alert("Consultation Created", "Your consultation has been created successfully.");
         
         // Passer les données de consultation à la page d'accueil
-        navigation.navigate('Home', { consultationData: result.data.consultationCreateOne.record });
-      } else {
+        navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
+      } else {                                    //Data
         throw new Error("Error creating consultation");
       }
       console.log('Consultation created:', result);
@@ -236,6 +253,26 @@ const NewConsultationScreen = () => {
           placeholder="Enter blood pressure"
         />
 
+         <Text style={styles.label}>Status</Text>
+        <SelectList
+          setSelected={(val) => setConsultationData({ ...consultationData, status: val })}
+          data={statusOptions}
+          placeholder="Select Status"
+          boxStyles={styles.dropdown}
+          dropdownStyles={styles.dropdownList}
+        />
+
+         <Text style={styles.label}>Photo Material</Text>
+      <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>
+        <Text style={styles.photoButtonText}>Take a Photo</Text>
+      </TouchableOpacity>
+
+      {consultationData.photo_material ? (
+        <Image source={{ uri: consultationData.photo_material }} style={styles.imagePreview} />
+      ) : (
+        <Text style={styles.noPhotoText}>No photo selected</Text>
+      )}
+
         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
           <Text>Date of creation: {consultationData.createdAt.toLocaleDateString()}</Text>
         </TouchableOpacity>
@@ -247,15 +284,6 @@ const NewConsultationScreen = () => {
             onChange={onStartDateChange}
           />
         )}
-
-        <Text style={styles.label}>Status</Text>
-        <SelectList
-          setSelected={(val) => setConsultationData({ ...consultationData, status: val })}
-          data={statusOptions}
-          placeholder="Select Status"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        />
 
       </View>
 
@@ -410,5 +438,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 5,
   },
-
+  photoButton: {
+    backgroundColor: '#ddd',
+    padding: 12,
+    borderRadius: 13,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  photoButtonText: { color: '#000000', fontSize: 16 },
+  imagePreview: { width: '100%', height: 200, marginBottom: 20 },
+  noPhotoText: { color: '#999', marginBottom: 20, fontStyle: 'italic' },
+ 
 })

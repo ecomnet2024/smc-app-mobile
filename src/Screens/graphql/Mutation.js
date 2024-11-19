@@ -44,6 +44,7 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
       pulse
       status
       createdAt
+      photo_material
     }
     recordId
   }

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, Button } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PATIENT } from '../Screens/graphql/Mutation';
-import { GET_CLINIC } from '../Screens/graphql/Queries';
+import { GET_CLINIC ,GET_PATIENT } from '../Screens/graphql/Queries';
 import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -13,6 +13,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 const CreatePatientForm = () => {
 
     const navigation = useNavigation();
+
+
+  const { data: clinicData, loading: clinicLoading, error: clinicError } = useQuery(GET_CLINIC);
+  const { data: patientDataResponse, loading: patientLoading, error: patientError } = useQuery(GET_PATIENT);
+
+  const [selectedPatientId, setSelectedPatientId] = useState(null); // Stocke l'ID du patient sélectionné
+  // Stocke l'ID du patient sélectionné
+
 
   const [patientData, setPatientData] = useState({
     name: '',
@@ -25,13 +33,19 @@ const CreatePatientForm = () => {
   });
   const [createPatient] = useMutation(CREATE_PATIENT);
 
-  const { data, loading, error } = useQuery(GET_CLINIC);
+ // Générer les options pour les cliniques
+ const clinicOptions =
+ clinicData?.clinicMany?.map(clinic => ({
+   key: clinic._id,
+   value: clinic.name,
+ })) || [];
 
-const clinicOptions = data?.clinicMany?.map(clinic => ({
-  key: clinic._id,
-  value: clinic.name, // ou tout autre champ représentatif de la clinique
-})) || [];
-
+// Générer les options pour les patients
+const patientOptions =
+ patientDataResponse?.patientMany?.map(patient => ({
+   key: patient._id,
+   value: patient.name,
+ })) || [];
 
    // Options pour le champ Gender
    const genderOptions = [
@@ -44,9 +58,25 @@ const clinicOptions = data?.clinicMany?.map(clinic => ({
     { key: 'New', value: 'New' },
     { key: 'Returning', value: 'Returning' },
   ];
+  
+  const handleSelectSubmit = () => {
+    if (!selectedPatientId) {
+      Alert.alert('Error', 'Please select a patient');
+      return;
+    }
+    // Récupérer l'objet complet du patient sélectionné
+    const selectedPatient = patientDataResponse.patientMany.find(
+      (patient) => patient._id === selectedPatientId
+    );
+    if (!selectedPatient) {
+      Alert.alert('Error', 'Patient not found');
+      return;
+    }
+    // Naviguer vers ConsultationScreen avec l'objet patient
+    navigation.navigate('NewConsultation', { patient: selectedPatient });
+  };
 
-
-
+  
   const handleSubmit = async () => {
     if (
       !patientData.name ||
@@ -92,6 +122,15 @@ const clinicOptions = data?.clinicMany?.map(clinic => ({
     }
   };
 
+  if (clinicLoading || patientLoading) {
+    return <Text>Loading...</Text>;
+  }
+  if (clinicError || patientError) {
+    console.error('Error fetching data:', clinicError || patientError);
+    return <Text>Failed to load data. Please try again later.</Text>;
+  }
+
+
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
@@ -114,6 +153,23 @@ const clinicOptions = data?.clinicMany?.map(clinic => ({
 
       {/* Formulaire stylisé dans un bloc */}
       <View style={styles.formContainer}>
+
+      <View>
+     {/* Sélection d'un patient existant */}
+     <Text style={styles.label}>Select an existing patient</Text>
+          <SelectList
+            setSelected={(value) => setSelectedPatientId(value)}
+            data={patientOptions}
+            placeholder="Choose patient created"
+            boxStyles={styles.dropdown}
+            dropdownStyles={styles.dropdownList}
+          />
+      <Button
+        title="Submit existing patient"
+        onPress={handleSelectSubmit}
+        disabled={!selectedPatientId}
+      />
+    </View>
 
          {/* Patient Section */}
       <View style={styles.section}>
@@ -182,8 +238,8 @@ const clinicOptions = data?.clinicMany?.map(clinic => ({
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
 
-        
         </View>
+
 
     </View>
     </ScrollView>
@@ -207,9 +263,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   image: {
-    width: '75%',
-    height: 170, // Taille de l'image en haut
+    width: '65%',
+    height: 156, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
+    alignSelf: 'center',
+    marginTop:-8,
   },
   formContainer: {
     backgroundColor: '#fff', // Fond du formulaire
