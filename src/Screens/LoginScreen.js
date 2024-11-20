@@ -11,12 +11,15 @@ import { Alert } from 'react-native';
 import { useMutation } from '@apollo/client';
 import { USER_LOGIN } from './graphql/Mutation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 
 
 const LoginScreen = () => {
 
         const [password, setPassword] = useState('');
+        const [isPasswordVisible, setPasswordVisible] = useState(false);
+
         const [errors, setErrors] = useState({});
         const [email, setEmail] = useState('');
         // Utilise la mutation USER_LOGIN
@@ -148,8 +151,19 @@ const LoginScreen = () => {
          <MaterialIcons name="key" size={24} color="black" />
 
            <TextInput style={styles.TextInput} 
-           placeholder='Enter your password' secureTextEntry={true} value={password} onChangeText={(text) => setPassword(text)} />
+           placeholder='Enter your password' secureTextEntry={!isPasswordVisible} value={password} onChangeText={(text) => setPassword(text)} />
+           <TouchableOpacity
+        onPress={() => setPasswordVisible(!isPasswordVisible)}
+        style={styles.iconContainer}
+      >
+        <Icon
+          name={isPasswordVisible ? "visibility" : "visibility-off"}
+          size={24}
+          color="#888"
+        />
+      </TouchableOpacity>
          </View>
+         
          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
 
       </View>
@@ -309,6 +323,9 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginBottom: 5,
+  },
+  iconContainer: {
+    marginLeft: 10,
   },
 
 })

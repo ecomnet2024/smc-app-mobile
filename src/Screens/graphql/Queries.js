@@ -29,6 +29,8 @@ query consultationMany {
       blood_pressure
       pulse
       status
+      createdAt
+      photo_material
     
   }
 }`
@@ -42,6 +44,9 @@ query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
     temperature
     blood_pressure
     pulse
+    status
+    photo_material
+    createdAt
     patient{
       _id
       name

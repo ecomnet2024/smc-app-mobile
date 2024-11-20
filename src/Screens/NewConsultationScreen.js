@@ -163,6 +163,8 @@ const NewConsultationScreen = () => {
         
         // Passer les données de consultation à la page d'accueil
         navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
+        window.location.reload();
+        
       } else {                                    //Data
         throw new Error("Error creating consultation");
       }

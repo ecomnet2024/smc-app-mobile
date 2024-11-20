@@ -52,7 +52,7 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
 
 `
 export const CREATE_PRESCRIPTION = gql`
-mutation Mutation($record: CreateOnePrescriptionInput!) {
+mutation  prescriptionCreateOne($record: CreateOnePrescriptionInput!) {
   prescriptionCreateOne(record: $record) {
     record {
       Contraindications
@@ -100,6 +100,22 @@ mutation Mutation($record: CreateOnePatientInput!) {
       phone
     }
     recordId
+  }
+}
+`
+export const REMOVE_CONSULTATION = gql`
+mutation ConsultationRemoveById($id: MongoID!) {
+  consultationRemoveById(_id: $id) {
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+      ... on MongoError {
+        message
+      }
+    }
   }
 }
 `

@@ -1,16 +1,17 @@
-import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, Image } from 'react-native'
 import { GestureHandlerRootView, TextInput, ScrollView } from 'react-native-gesture-handler'
 import React from 'react'
 import { useState } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
-import { CREATE_CONSULTATION } from '../Screens/graphql/Mutation';
+import { CREATE_CONSULTATION, REMOVE_CONSULTATION } from '../Screens/graphql/Mutation';
 import { GET_CONSULTATION_BY_PATIENT } from '../Screens/graphql/Queries';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
 import { SelectList } from 'react-native-dropdown-select-list';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { useNavigation } from '@react-navigation/native'
 
 
@@ -31,7 +32,9 @@ const ConsultationDetails = ({ route }) => {
   const { loading, error, data } = useQuery(GET_CONSULTATION_BY_PATIENT, {
     variables: { patientId },
   });
-  
+
+  const [removeConsultation, { loading: removeLoading, error: removeError }] = useMutation(REMOVE_CONSULTATION);
+
   // États pour les modales
   const [isConsultationModalVisible, setConsultationModalVisible] = useState(false);
 
@@ -45,13 +48,18 @@ const ConsultationDetails = ({ route }) => {
     status: 'New'
   });
 
+  // Photo material
+  const photoMaterial = consultation.photo_material && consultation.photo_material.length > 0
+    ? consultation.photo_material[0]
+    : null;
+
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 
   const onStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(false);
     setNewConsultationData({ ...newConsultationData, createdAt: selectedDate });
   };
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState();
 
 
  // Hook Apollo pour la mutation de création de consultation
@@ -111,6 +119,23 @@ const ConsultationDetails = ({ route }) => {
    }
 };
 
+const handleRemoveConsultation = async (consultationId) => {
+  try {
+    const { data } = await removeConsultation({ variables: { id: consultationId } });
+    if (data.consultationRemoveById.recordId) {
+      Alert.alert('Success', 'Consultation successfully removed.');
+      // Actualiser la liste des consultations après suppression
+      navigation.goBack(); // ou effectuez une mise à jour locale si nécessaire
+    } else {
+      Alert.alert('Error', 'Failed to remove consultation.');
+    }
+  } catch (err) {
+    console.error('Error while removing consultation:', err);
+    Alert.alert('Error', 'An unexpected error occurred.');
+  }
+};
+
+
 // Options pour le champ Status
 const statusOptions = [
   { key: 'New', value: 'New' },
@@ -166,9 +191,23 @@ const statusOptions = [
       <Text style={styles.label}>Pulse: <Text style={styles.value}> {consultation.pulse}</Text></Text>
       <Text style={styles.label}>Temperature: <Text style={styles.value}> {consultation.temperature}</Text></Text> 
       <Text style={styles.label}>Status: <Text style={styles.value}> {consultation.status}</Text></Text> 
-      <Text style={styles.label}>Medications: <Text style={styles.value}> {consultation.medications}</Text></Text> 
-      <Text style={styles.label}>Created at: <Text style={styles.value}> {consultation.patient.createdAt}</Text></Text>
-      
+      {/*<Text style={styles.label}>Medications: <Text style={styles.value}> {consultation.medications}</Text></Text>*/} 
+      <Text style={styles.label}>Created at: <Text style={styles.value}> {new Date(consultation.createdAt).toISOString().split("T")[0]}</Text></Text>
+      {/* Vérification pour l'image */}
+    {consultation.photo_material && consultation.photo_material.length > 0 ? (
+      <Image
+        source={{ uri: consultation.photo_material[0] }}
+        style={styles.photo}
+      />
+    ) : (
+      <Text style={styles.noPhoto}>No photo available</Text>
+    )}
+    <TouchableOpacity
+      style={styles.deleteButton}
+      onPress={() => handleRemoveConsultation(consultation._id)}>
+        <AntDesign name="delete" size={28} color="red" />
+    </TouchableOpacity>
+
       </View>
       ))}
     </ScrollView>
@@ -177,17 +216,11 @@ const statusOptions = [
     )}
 
 
-    <TouchableOpacity
+         <TouchableOpacity
               style={styles.button}
               onPress={() => setConsultationModalVisible(true)}>
               <Text style={styles.buttonText}>Add Consultation</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate('NewPatient')}
-              >
-              <Text style={styles.buttonText}>Add Patient</Text>
-            </TouchableOpacity>
+         </TouchableOpacity>
 
           {/* Modale pour Ajouter une Consultation */}
           <Modal
@@ -368,5 +401,25 @@ modalText: {
   fontSize: 16,
   color: '#333',
   marginBottom: 10,
-}
+},
+image: { width: '100%', height: 300, marginTop: 20 },
+photo: {
+  width: '100%',
+  height: 200,
+  resizeMode: 'cover',
+  marginBottom: 16,
+},
+noPhoto: {
+  fontSize: 12,
+  color: 'gray',
+},
+deleteButton: {
+  backgroundColor: '#fff',
+  padding: 8,
+  paddingLeft:10,
+  borderRadius: 8,
+  marginTop: 10,
+  alignItems: 'flex-end',
+},
+
 })
