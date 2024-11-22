@@ -33,7 +33,7 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
   consultationCreateOne(record: $record) {
     record {
       _id
-      doctor
+      medical_staff
       patient{
         name
         _id
@@ -80,7 +80,7 @@ mutation  prescriptionCreateOne($record: CreateOnePrescriptionInput!) {
 }
 `
 export const CREATE_PATIENT = gql`
-mutation Mutation($record: CreateOnePatientInput!) {
+mutation patientCreateOne($record: CreateOnePatientInput!) {
   patientCreateOne(record: $record) {
     error {
       message
@@ -94,8 +94,12 @@ mutation Mutation($record: CreateOnePatientInput!) {
       _id
       name
       age
+      email
       gender
-      clinic
+      clinic{
+        _id
+        name
+      }
       status
       phone
     }
@@ -114,6 +118,100 @@ mutation ConsultationRemoveById($id: MongoID!) {
       }
       ... on MongoError {
         message
+      }
+    }
+  }
+}
+`
+export const UPDATE_CONSULTATION = gql`
+mutation ConsultationUpdateById($id: MongoID!, $record: UpdateByIdConsultationInput!) {
+  consultationUpdateById(_id: $id, record: $record) {
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+    record {
+      medical_staff
+      call_center_feedback
+      doctor_feedback
+      patient {
+        name
+        age
+        gender
+        clinic {
+          name
+          region
+          city
+          street_location
+          phoneNumber
+          email
+          website
+          _id
+          createdAt
+          updatedAt
+        }
+        phone
+        status
+        email
+        insurance_number
+        _id
+        createdAt
+        updatedAt
+      }
+      temperature
+      complain
+      Contraindications
+      pulse
+      blood_pressure
+      status
+      surgical_history
+      emergency
+      pregnancy
+      lastEditBy
+      closedBy
+      photo_material
+      labResults
+      vaccinations
+      allergies
+      visits
+      medications
+      prescriptions
+      _id
+      createdAt
+      updatedAt
+      allergy {
+        _id
+      }
+      prescription {
+        _id
+      }
+      medication {
+        _id
+      }
+      vaccination {
+        vaccine
+        patient
+        medical_staff
+        nurse
+        date
+        _id
+        createdAt
+        updatedAt
+      }
+      visit {
+        patient
+        nurse
+        visit_date
+        symptoms
+        diagnosis
+        treatment
+        notes
+        _id
+        createdAt
+        updatedAt
       }
     }
   }

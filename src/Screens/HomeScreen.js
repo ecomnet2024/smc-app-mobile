@@ -11,14 +11,33 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
 import Testconsult from '../../Components/testconsult';
 import { GET_CONSULTATION } from '../Screens/graphql/Queries';
+import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@apollo/client'
+
 
 
 const HomeScreen = () => {
 
-  const { loading, error, data } = useQuery(GET_CONSULTATION);
+  const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
   const navigation = useNavigation();
   const [isTokenChecked, setIsTokenChecked] = useState(false); // État pour savoir si la vérification est terminée
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch(); // Rafraîchir automatiquement toutes les 50 secondes
+      console.log('Data refreshed automatically');
+    }, 50000);
+  
+    return () => clearInterval(interval); // Nettoyer l'intervalle
+  }, []);
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch(); // Rafraîchir les données à chaque fois que la page est affichée
+      console.log('Data refreshed on focus');
+    }, [refetch])
+  );
 
 
   const [userEmail, setUserEmail] = useState('');

@@ -144,7 +144,7 @@ const NewConsultationScreen = () => {
       const result = await consultationCreateOne({
         variables: {
           record: {
-            doctor: doctorId, // ID du docteur connecté (récupérer dynamiquement)
+            medical_staff: doctorId, // ID du docteur connecté (récupérer dynamiquement)
             patient: patientID,
             temperature: parseFloat(consultationData.temperature),
             complain: consultationData.complain,
@@ -163,7 +163,6 @@ const NewConsultationScreen = () => {
         
         // Passer les données de consultation à la page d'accueil
         navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
-        window.location.reload();
 
       } else {                                    //Data
         throw new Error("Error creating consultation");
@@ -250,6 +249,7 @@ const NewConsultationScreen = () => {
         <Text style={styles.label}>Blood Pressure</Text>
         <TextInput
           style={styles.input}
+          keyboardType="numeric"
           value={consultationData.blood_pressure}
           onChangeText={(text) => setConsultationData({ ...consultationData, blood_pressure: text })}
           placeholder="Enter blood pressure"

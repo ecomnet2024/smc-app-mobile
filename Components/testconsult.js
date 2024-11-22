@@ -1,11 +1,11 @@
-import { StyleSheet, Text, View , ScrollView, Pressable, Platform, Alert} from 'react-native'
+import { StyleSheet, Text, View , ScrollView, Pressable, Platform, Alert, RefreshControl} from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import { GET_CONSULTATION } from '../src/Screens/graphql/Queries'
 import { useQuery } from '@apollo/client'
 import { useNavigation } from '@react-navigation/native'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FlatList } from 'react-native-gesture-handler'
 import { Ionicons } from '@expo/vector-icons';
 
@@ -13,14 +13,22 @@ import { Ionicons } from '@expo/vector-icons';
 const Testconsult = () => {
 
 // Requête GraphQL pour récupérer les consultations
-   const { loading, error, data } = useQuery(GET_CONSULTATION);
+   const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
    const [searchQuery, setSearchQuery] = useState('');
+   const [refreshing, setRefreshing] = useState(false);
+
    const navigation = useNavigation();
+
+    // Rafraîchir les données au montage
+  useEffect(() => {
+    refetch(); // Recharger les données au montage
+  }, [refetch]);
+
  // Gérer l'affichage pendant le chargement ou en cas d'erreur
     if(loading){
         return <View><Text>is loading ...</Text></View>
     }else{
-        console.log("Error ", error)
+        console.log("Error fetching consultations:", error)
     }
 
     console.log("data ", data)
@@ -35,6 +43,17 @@ const filteredConsultations = consultations.filter((item) => {
     return patientName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
+
+ // Fonction pour gérer le rafraîchissement
+ const onRefresh = async () => {
+  setRefreshing(true);
+  try {
+    await refetch();
+  } catch (error) {
+    console.error('Error refreshing data:', error);
+  }
+  setRefreshing(false);
+}; 
 
 const renderConsultation = ({ item }) => {
   const patientName = item.patient?.name || "Unknown";
@@ -77,6 +96,9 @@ const renderConsultation = ({ item }) => {
                renderItem={renderConsultation}
                keyExtractor={(item) => item._id}
                ListEmptyComponent={<Text style={styles.emptyText}>No consultations found</Text>}
+               refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
             />
           </View>
    </View>

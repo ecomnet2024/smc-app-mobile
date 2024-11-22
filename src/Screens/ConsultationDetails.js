@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, Image } from 'react-native'
 import { GestureHandlerRootView, TextInput, ScrollView } from 'react-native-gesture-handler'
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
 import { CREATE_CONSULTATION, REMOVE_CONSULTATION } from '../Screens/graphql/Mutation';
@@ -12,6 +12,8 @@ import { SelectList } from 'react-native-dropdown-select-list';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import { useFocusEffect } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native'
 
 
@@ -29,11 +31,22 @@ const ConsultationDetails = ({ route }) => {
    console.log("Consultation Details PatientID :", patientId);
    console.log("Consultation Details Patient object :", patientObj);
    
-  const { loading, error, data } = useQuery(GET_CONSULTATION_BY_PATIENT, {
+  const { loading, error, data, refetch } = useQuery(GET_CONSULTATION_BY_PATIENT, {
     variables: { patientId },
   });
 
-  const [removeConsultation, { loading: removeLoading, error: removeError }] = useMutation(REMOVE_CONSULTATION);
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch(); // Rafraîchir les données à chaque fois que la page est affichée
+      console.log('Data refreshed on focus');
+    }, [refetch])
+  );
+
+  const [removeConsultation, { loading: removeLoading, error: removeError }] = useMutation(REMOVE_CONSULTATION, {
+    onCompleted: () => {
+      refetch();  // Recharger les données de consultations
+    },
+  });
 
   // États pour les modales
   const [isConsultationModalVisible, setConsultationModalVisible] = useState(false);
@@ -45,13 +58,31 @@ const ConsultationDetails = ({ route }) => {
     pulse: '',
     createdAt: new Date(),
     temperature: '',
-    status: 'New'
+    status: 'New',
+    photo_material: ''
   });
 
   // Photo material
   const photoMaterial = consultation.photo_material && consultation.photo_material.length > 0
     ? consultation.photo_material[0]
     : null;
+
+    // Prise de la photo
+const handlePhotoPick = async () => {
+  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+  if (!permissionResult.granted) {
+    Alert.alert('Permission Required', 'Camera access is needed to take a photo.');
+    return;
+  }
+  const photo = await ImagePicker.launchCameraAsync({
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
+  if (!photo.canceled) {
+    setNewConsultationData({ ...newConsultationData, photo_material: photo.assets[0].uri });
+  }
+};
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 
@@ -122,10 +153,12 @@ const ConsultationDetails = ({ route }) => {
 const handleRemoveConsultation = async (consultationId) => {
   try {
     const { data } = await removeConsultation({ variables: { id: consultationId } });
+     // Actualiser la liste des consultations après suppression
+     
+
     if (data.consultationRemoveById.recordId) {
       Alert.alert('Success', 'Consultation successfully removed.');
-      // Actualiser la liste des consultations après suppression
-      navigation.goBack(); // ou effectuez une mise à jour locale si nécessaire
+     
     } else {
       Alert.alert('Error', 'Failed to remove consultation.');
     }
@@ -133,6 +166,14 @@ const handleRemoveConsultation = async (consultationId) => {
     console.error('Error while removing consultation:', err);
     Alert.alert('Error', 'An unexpected error occurred.');
   }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Refetch les données lorsque la page devient active
+      refetch();
+    }, [])
+  );
+
 };
 
 
@@ -174,11 +215,21 @@ const statusOptions = [
     {loading && <Text>Loading...</Text>}
       {error && <Text>Error: {error.message}</Text>}
 
+      <View style={styles.headerContainer}>
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={40} color="gray" />
+        <Ionicons name="chevron-back-circle" size={39} color="gray" />
       </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")} >
+         <Ionicons name="home" size={39} color="black" />
+      </TouchableOpacity>
+      </View>
+
+     
 
       {!loading && !error && data?.consultationMany && data.consultationMany.length > 0 ? (
       <ScrollView>
@@ -193,15 +244,24 @@ const statusOptions = [
       <Text style={styles.label}>Status: <Text style={styles.value}> {consultation.status}</Text></Text> 
       {/*<Text style={styles.label}>Medications: <Text style={styles.value}> {consultation.medications}</Text></Text>*/} 
       <Text style={styles.label}>Created at: <Text style={styles.value}> {new Date(consultation.createdAt).toISOString().split("T")[0]}</Text></Text>
-      {/* Vérification pour l'image */}
-    {consultation.photo_material && consultation.photo_material.length > 0 ? (
-      <Image
-        source={{ uri: consultation.photo_material[0] }}
-        style={styles.photo}
-      />
-    ) : (
-      <Text style={styles.noPhoto}>No photo available</Text>
-    )}
+      
+      {/* Affichage conditionnel strict */}
+      {consultation.photo_material && consultation.photo_material.length > 0 && 
+ consultation.photo_material[0].trim() !== "" ? (
+          console.log("Photo Material:", consultation.photo_material),
+
+          <Image
+            source={{ uri: consultation.photo_material[0] }}
+            style={styles.photo}
+          />
+        ) : (
+          // Utilisation d'une View réduite à la taille minimale
+          <View style={styles.noPhotoContainer}>
+            {console.log("Rendering: No photo available")}
+            <Text style={styles.noPhoto}>No photo available</Text>
+          </View>
+        )}
+
     <TouchableOpacity
       style={styles.deleteButton}
       onPress={() => handleRemoveConsultation(consultation._id)}>
@@ -212,7 +272,7 @@ const statusOptions = [
       ))}
     </ScrollView>
      ) : (
-      !loading && !error && <Text>No consultations available for this patient.</Text>
+      !loading && !error && <Text style={styles.noData}>No consultations available for this patient.</Text>
     )}
 
 
@@ -278,6 +338,17 @@ const statusOptions = [
           boxStyles={styles.dropdown}
           dropdownStyles={styles.dropdownList}
         />
+
+         <Text style={styles.label}>Photo Material</Text>
+      <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>
+        <Text style={styles.buttonText}>Take a Photo</Text>
+      </TouchableOpacity>
+
+      {newConsultationData.photo_material ? (
+        <Image source={{ uri: newConsultationData.photo_material }} style={styles.imagePreview} />
+      ) : (
+        <Text style={styles.noPhotoText}>No photo selected</Text>
+      )}
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleAddConsultation}>
@@ -375,13 +446,17 @@ input: {
 submitButton: {
   backgroundColor: '#2ecc71',
   padding: 12,
+  width: 185,
   borderRadius: 25,
   alignItems: 'center',
   marginTop: 10,
+  alignSelf: 'center',
 },
 cancelButton: {
   backgroundColor: '#e74c3c',
   padding: 12,
+  width: 185,
+  alignSelf: 'center',
   borderRadius: 25,
   alignItems: 'center',
   marginTop: 10,
@@ -403,15 +478,40 @@ modalText: {
   marginBottom: 10,
 },
 image: { width: '100%', height: 300, marginTop: 20 },
+/*photo: {
+  width: '100%',
+  height: 200,
+  resizeMode: 'cover',
+  marginBottom: 10,
+},*/
+noPhoto: {
+  fontSize: 12,
+  color: 'gray',
+},
 photo: {
   width: '100%',
   height: 200,
   resizeMode: 'cover',
-  marginBottom: 16,
+  marginVertical: 10,
+  borderRadius: 10,
+},
+noPhotoContainer: {
+  marginVertical: 0,
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: 'auto', // Permet au conteneur de s'adapter uniquement au contenu
 },
 noPhoto: {
-  fontSize: 12,
-  color: 'gray',
+  textAlign: 'center',
+  color: '#888',
+  fontSize: 14,
+  marginVertical: 0, // Réduit toute marge supplémentaire
+},
+noData: {
+  textAlign: 'center',
+  fontSize: 16,
+  color: '#888',
+  marginTop: 20,
 },
 deleteButton: {
   backgroundColor: '#fff',
@@ -421,5 +521,23 @@ deleteButton: {
   marginTop: 10,
   alignItems: 'flex-end',
 },
+headerContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  paddingHorizontal: 10,
+  marginVertical: 10,
+},
+photoButton: {
+  backgroundColor: '#ddd',
+  padding: 12,
+  borderRadius: 13,
+  marginBottom: 10,
+  alignItems: 'center',
+},
+photoButtonText: { color: '#000000', fontSize: 16 },
+imagePreview: { width: '100%', height: 200, marginBottom: 20 },
+noPhotoText: { color: '#999', marginBottom: 20, fontStyle: 'italic' },
+
 
 })

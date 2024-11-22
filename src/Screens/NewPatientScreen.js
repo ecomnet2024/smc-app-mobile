@@ -31,7 +31,7 @@ const CreatePatientForm = () => {
     phone: '',
     status: '',
   });
-  const [createPatient] = useMutation(CREATE_PATIENT);
+  const [patientCreateOne, {data}] = useMutation(CREATE_PATIENT);
 
  // Générer les options pour les cliniques
  const clinicOptions =
@@ -84,7 +84,8 @@ const patientOptions =
       !patientData.gender ||
       !patientData.status ||
       !patientData.phone ||
-      !patientData.clinic 
+      !patientData.clinic ||
+      !patientData.email 
     ) {
       // Gestion des erreurs si un champ est vide
       alert('Please fill in all required fields');
@@ -92,7 +93,7 @@ const patientOptions =
     }
 
     try {
-      const result = await createPatient({
+      const result = await patientCreateOne({
         variables: {
           record: {
             name: patientData.name,
@@ -105,11 +106,13 @@ const patientOptions =
           },
         },
       });
+      console.log('Données envoyées pour création du patient :', patientData);
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
       console.log("PatientData",result);
       if (result.data && result.data.patientCreateOne && result.data.patientCreateOne.record) {
         const patient = result.data.patientCreateOne.record;
         console.log('Patient ID:', patient);
+        console.log("datamutation",data);
   
         // Redirection vers la page consultation en passant l'ID du patient
       navigation.navigate('NewConsultation', { patient: patient ,
@@ -118,7 +121,11 @@ const patientOptions =
         console.error('Erreur: la mutation n’a pas renvoyé de patient.');
       }
     } catch (error) {
-      console.error('Error creating patient:', error);
+      //console.error('Error creating patient:', error);
+      console.error('Erreur Apollo :', error.networkError || error.graphQLErrors);
+      console.log('Données envoyées pour création du patient :', patientData);
+      console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
+      console.log("PatientData",result);
     }
   };
 
