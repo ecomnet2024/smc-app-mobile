@@ -29,7 +29,7 @@ const CreatePatientForm = () => {
     email: '',
     clinic:'',
     phone: '',
-    status: '',
+    status: ''
   });
   const [patientCreateOne, {data}] = useMutation(CREATE_PATIENT);
 
@@ -59,7 +59,10 @@ const patientOptions =
     { key: 'Returning', value: 'Returning' },
   ];
   
+  
   const handleSelectSubmit = () => {
+
+    
     if (!selectedPatientId) {
       Alert.alert('Error', 'Please select a patient');
       return;
@@ -91,6 +94,7 @@ const patientOptions =
       alert('Please fill in all required fields');
       return;
     }
+    const sn =" ";
 
     try {
       const result = await patientCreateOne({
@@ -103,6 +107,7 @@ const patientOptions =
             email: patientData.email,
             phone: patientData.phone,
             status: patientData.status,
+            sn: sn,
           },
         },
       });
@@ -230,7 +235,6 @@ const patientOptions =
          boxStyles={styles.dropdown}
          dropdownStyles={styles.dropdownList}
        />
-
 
         <Text style={styles.label}>Status</Text>
         <SelectList

@@ -18,6 +18,7 @@ import SettingScreen from './src/Screens/SettingScreen';
 import NewConsultationScreen from './src/Screens/NewConsultationScreen';
 import NewPatientScreen from './src/Screens/NewPatientScreen';
 import ConsultationDetails from './src/Screens/ConsultationDetails';
+import ConsultationTabs from './src/Screens/ConsultationTabs';
 import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,6 +56,44 @@ function HomeTabNavigator() {
       <Tab.Screen name="Phone" component={PhoneScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Notification" component={NotificationScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Setting" component={SettingScreen} options={{ headerShown: false }} />
+    </Tab.Navigator>
+  );
+}
+
+// Tab Navigator pour les objets liés à une consultation
+function ConsultationTabNavigator({ route }) {
+  const { consultationId } = route.params; // Récupérer l'ID de la consultation
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === 'Medications') {
+            iconName = focused ? 'medkit' : 'medkit-outline';
+          } else if (route.name === 'Prescriptions') {
+            iconName = focused ? 'document' : 'document-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#007aff',
+        tabBarInactiveTintColor: '#8e8e93',
+      })}
+    >
+      <Tab.Screen
+        name="Medications"
+        component={MedicationScreen}
+        initialParams={{ consultationId }} // Passer l'ID à la page
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name="Prescriptions"
+        component={PrescriptionScreen}
+        initialParams={{ consultationId }} // Passer l'ID à la page
+        options={{ headerShown: false }}
+      />
     </Tab.Navigator>
   );
 }

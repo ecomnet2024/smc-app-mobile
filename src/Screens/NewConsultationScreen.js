@@ -14,6 +14,8 @@ import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
 import * as ImagePicker from 'expo-image-picker';
+import { ActivityIndicator } from 'react-native';
+
 
 
 
@@ -25,6 +27,7 @@ const NewConsultationScreen = () => {
   const { patientData } = route.params; // Récupérer les données du patient
   const { name, age, gender} = patientData || {}; // Déstructurer les données
 
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
 
@@ -38,6 +41,13 @@ const NewConsultationScreen = () => {
         const tokenString = String(token)
         const decodedToken = jwtDecode(tokenString);
         const doctorId = decodedToken.user_id;
+
+        // const doctorData = {
+        //   _id: decodedToken.user_id, // ID du médecin à partir du token
+        //   name: decodedToken.name, // Extrait du token ou backend
+        //   role: decodedToken.role, // Rôle, si disponible
+        // };
+
         console.log("token decode",decodedToken);
         return doctorId;
 
@@ -55,13 +65,9 @@ const NewConsultationScreen = () => {
   const [consultationData, setConsultationData] = useState({
     temperature: '',
     complain: '',
-    //allergies: '',
-    //medications: '',
     pulse: '',
     blood_pressure: '',
-   // surgical_history: '',
-   // emergency: false,
-    photo_material: '', // Stockage de l'URI de la photo
+    photo_material: [], // Stockage de l'URI de la photo
     createdAt: new Date(),
     status:'New',
   });
@@ -82,7 +88,7 @@ const NewConsultationScreen = () => {
   // Mutations GraphQL
  const [consultationCreateOne,{data}] = useMutation(CREATE_CONSULTATION);
 
- // Prise de la photo
+ // Prise de la photo par camera
  const handlePhotoPick = async () => {
   const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
   if (!permissionResult.granted) {
@@ -95,8 +101,69 @@ const NewConsultationScreen = () => {
     quality: 1,
   });
   if (!photo.canceled) {
-    setConsultationData({ ...consultationData, photo_material: photo.assets[0].uri });
+    try {
+      console.log('Photo URI:', photo.assets[0].uri);
+      setConsultationData((prevState) => ({
+        ...prevState,
+        photo_material: [...prevState.photo_material, photo.assets[0].uri],
+      }));
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+    }
   }
+};
+
+// select image from gallery
+const pickImageFromGallery = async () => {
+  const photo = await ImagePicker.launchImageLibraryAsync({
+    allowsEditing: true,
+    aspect: [4, 3],
+    quality: 1,
+  });
+
+  if (!photo.canceled) {
+    console.log('Gallery Image URI:', photo.assets[0].uri);
+    setConsultationData((prevState) => ({
+      ...prevState,
+      photo_material: [...prevState.photo_material, photo.assets[0].uri],
+    }));
+  }
+};
+
+
+
+// Function to upload image to Cloudinary
+const uploadImageToCloudinary = async (fileUri) => {
+
+  console.log('Uploading to Cloudinary:', fileUri);
+
+  // if (!consultationData.photo_material) {
+  //   Alert.alert('No image selected', 'Please retake an image before uploading.');
+  //   return;
+  // }
+
+  const formData = new FormData();
+    formData.append('file', {
+      uri: fileUri,
+      type: 'image/jpeg',
+      name: 'photo.jpg',
+    });
+    formData.append('upload_preset', 'my_preset');
+
+    try {
+      const response = await fetch('https://api.cloudinary.com/v1_1/djovqbxfl/image/upload', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || 'Failed to upload image');
+      return data.secure_url; // URL de l’image téléversée sur Cloudinary
+    } catch (error) {
+      console.error('Error uploading to Cloudinary:', error);
+      throw error;
+    } 
 };
 
  // Options pour le champ Status
@@ -106,10 +173,10 @@ const NewConsultationScreen = () => {
   { key: 'Closed', value: 'Closed' },
 ];
  
-
   const handleSubmit = async () => {
      // Logs pour vérifier les données du formulaire
-     console.log('Consultation Data:', consultationData);
+     console.log('Submitting Consultation Data:', consultationData);
+
      if (!consultationData.temperature || !consultationData.complain || !consultationData.pulse || !consultationData.blood_pressure) {
       // Gestion des erreurs si un champ est vide
       alert('Please fill in all required fields');
@@ -132,19 +199,57 @@ const NewConsultationScreen = () => {
       console.error('Erreur: patient manquant');
       return;
     }
-    const doctorId = await getDoctorIdFromToken();
-    let patientID = patient._id;
 
-    if (!doctorId) {
-      Alert.alert("Error", "Unable to retrieve doctor ID");
+    const medical_staff_Id = await getDoctorIdFromToken();
+    const patientID = patient?._id;
+
+    // const patient = {
+    //   _id: patient?._id, // Assurez-vous que patient existe
+    //   name: patient?.name,
+    //   age: patient?.age,
+    // };
+
+    if (!medical_staff_Id || !patientID) {
+      Alert.alert('Error', 'Missing doctor or patient information.');
       return;
     }
 
+
     try {
-      const result = await consultationCreateOne({
+
+      setLoading(true);
+      // Vérifiez si une image a été ajoutée
+    let photoUrls = [];
+    if (consultationData.photo_material.length > 0) {
+      console.log("Uploading photos...");
+      // Upload toutes les images (dans le cas d'un tableau d'images)
+      photoUrls = await Promise.all(
+        consultationData.photo_material.map(async (uri) => {
+          const url = await uploadImageToCloudinary(uri);
+          console.log("Uploaded Photo URL:", url);
+          return url;
+        })
+      );
+    }
+
+    console.log("Data being submitted:", {
+      medical_staff: medical_staff_Id,
+      patient: patientID,
+      temperature,
+      complain: consultationData.complain,
+      pulse,
+      blood_pressure: consultationData.blood_pressure,
+      status: consultationData.status,
+      createdAt: consultationData.createdAt,
+      photo_material: photoUrls,
+    });
+    
+
+       //Création de la consultation
+       const result = await consultationCreateOne({
         variables: {
           record: {
-            medical_staff: doctorId, // ID du docteur connecté (récupérer dynamiquement)
+            medical_staff: medical_staff_Id,
             patient: patientID,
             temperature: parseFloat(consultationData.temperature),
             complain: consultationData.complain,
@@ -152,32 +257,25 @@ const NewConsultationScreen = () => {
             blood_pressure: consultationData.blood_pressure,
             status: consultationData.status,
             createdAt: consultationData.createdAt,
-            photo_material: consultationData.photo_material,
-           // surgical_history: consultationData.surgical_history,
-           // emergency: consultationData.emergency,
+            photo_material: photoUrls,
           },
         },
       });
-      if (result.data && result.data.consultationCreateOne) {
-        Alert.alert("Consultation Created", "Your consultation has been created successfully.");
-        
-        // Passer les données de consultation à la page d'accueil
-        navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
 
-      } else {                                    //Data
-        throw new Error("Error creating consultation");
-      }
-      console.log('Consultation created:', result);
-      console.log("datamutation",data);
+      console.log('Consultation Created:', result.data);
+      console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
+      Alert.alert('Success', 'Consultation created successfully!');
 
-      // Rediriger ou afficher une confirmation
+      // Naviguer vers la page de détails
+      navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
     } catch (error) {
-      console.error('Error creating consultation:', error);
-      Alert.alert("Error", "There was a problem creating your consultation.");
+      console.error("GraphQL Error:", error.networkError || error.graphQLErrors || error);
+      console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
+      Alert.alert('Error', error.message || "Failed to create consultation.");
+    } finally {
+      setLoading(false);
     }
-
   };
-
 
 
 
@@ -210,7 +308,7 @@ const NewConsultationScreen = () => {
             <Text>Genre: {gender}</Text>
           </>
         ) : (
-          <Text>Aucune donnée du patient disponible.</Text>
+          <Text>cannot show patient information here.</Text>
         )}
       </View>
 
@@ -268,12 +366,17 @@ const NewConsultationScreen = () => {
       <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>
         <Text style={styles.photoButtonText}>Take a Photo</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.photoButton} onPress={pickImageFromGallery}>
+        <Text style={styles.photoButtonText}>Go to gallery</Text>
+      </TouchableOpacity>
 
-      {consultationData.photo_material ? (
-        <Image source={{ uri: consultationData.photo_material }} style={styles.imagePreview} />
-      ) : (
-        <Text style={styles.noPhotoText}>No photo selected</Text>
-      )}
+      <View>
+            {consultationData.photo_material.map((uri, index) => (
+              <Image key={index} source={{ uri }} style={styles.imagePreview} />
+            ))}
+          </View>
+
+          {loading && <ActivityIndicator size="large" color="#0000ff" />}
 
         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
           <Text>Date of creation: {consultationData.createdAt.toLocaleDateString()}</Text>
@@ -299,6 +402,7 @@ const NewConsultationScreen = () => {
     </GestureHandlerRootView>
   )
 }
+
 
 export default NewConsultationScreen
 

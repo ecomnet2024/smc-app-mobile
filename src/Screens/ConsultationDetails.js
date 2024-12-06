@@ -14,7 +14,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native'
+import * as FileSystem from 'expo-file-system';
+import { useNavigation } from '@react-navigation/native';
 
 
 const ConsultationDetails = ({ route }) => {
@@ -25,7 +26,10 @@ const ConsultationDetails = ({ route }) => {
    const { consultation, patient } = route.params;
    console.log("Consultation Details Patient :", consultation.patient); 
    console.log("Consultation Details Consultation:", consultation);
-   
+   console.log("Received consultation data:", consultation);
+console.log("Photo material:", photoMaterial);
+
+   const photoMaterial = consultation.photo_material || [];
    let patientId= consultation.patient._id;
    let patientObj= consultation.patient;
    console.log("Consultation Details PatientID :", patientId);
@@ -62,12 +66,7 @@ const ConsultationDetails = ({ route }) => {
     photo_material: ''
   });
 
-  // Photo material
-  const photoMaterial = consultation.photo_material && consultation.photo_material.length > 0
-    ? consultation.photo_material[0]
-    : null;
-
-    // Prise de la photo
+    // Prise de la photo avec conversion en Base64
 const handlePhotoPick = async () => {
   const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
   if (!permissionResult.granted) {
@@ -94,7 +93,11 @@ const handlePhotoPick = async () => {
 
 
  // Hook Apollo pour la mutation de création de consultation
- const [consultationCreateOne, { loading: loadingConsultation, error: errorConsultation }] = useMutation(CREATE_CONSULTATION);
+ const [consultationCreateOne, { loading: loadingConsultation, error: errorConsultation }] = useMutation(CREATE_CONSULTATION , {
+  onCompleted: () => {
+    refetch();  // Recharger les données de consultations
+  },
+});
 
  const handleAddConsultation = async () => {
    const doctorId = await getDoctorIdFromToken();
@@ -138,16 +141,20 @@ const handlePhotoPick = async () => {
          status: newConsultationData.status,
          createdAt: newConsultationData.createdAt,
          patient: patientId,  // Utiliser l'ID du patient actuel
-         doctor: doctorId
+         medical_staff: doctorId,
+         photo_material: newConsultationData.photo_material, // Ajouter l'image en Base64
          }
-       }
+       }  
+
      });
 
      console.log('Consultation créée:', data.consultationCreateOne);
      setConsultationModalVisible(false);  // Fermer la modale après création
+
    } catch (err) {
      console.error("Erreur lors de la création de la consultation:", err);
    }
+
 };
 
 const handleRemoveConsultation = async (consultationId) => {
@@ -230,7 +237,6 @@ const statusOptions = [
       </View>
 
      
-
       {!loading && !error && data?.consultationMany && data.consultationMany.length > 0 ? (
       <ScrollView>
       {data.consultationMany.map((consultation) => (
@@ -238,35 +244,33 @@ const statusOptions = [
       <Text style={styles.title}>Details consultation for Patient: {consultation.patient.name}</Text>
           
       <Text style={styles.label}>Complain: <Text style={styles.value}> {consultation.complain}</Text></Text>
-      <Text style={styles.label}>Blood Pressure: <Text style={styles.value}> {consultation.blood_pressure}</Text></Text>
-      <Text style={styles.label}>Pulse: <Text style={styles.value}> {consultation.pulse}</Text></Text>
+      {/* <Text style={styles.label}>Blood Pressure: <Text style={styles.value}> {consultation.blood_pressure}</Text></Text>
+      <Text style={styles.label}>Pulse: <Text style={styles.value}> {consultation.pulse}</Text></Text> */}
       <Text style={styles.label}>Temperature: <Text style={styles.value}> {consultation.temperature}</Text></Text> 
       <Text style={styles.label}>Status: <Text style={styles.value}> {consultation.status}</Text></Text> 
       {/*<Text style={styles.label}>Medications: <Text style={styles.value}> {consultation.medications}</Text></Text>*/} 
       <Text style={styles.label}>Created at: <Text style={styles.value}> {new Date(consultation.createdAt).toISOString().split("T")[0]}</Text></Text>
       
-      {/* Affichage conditionnel strict */}
-      {consultation.photo_material && consultation.photo_material.length > 0 && 
- consultation.photo_material[0].trim() !== "" ? (
-          console.log("Photo Material:", consultation.photo_material),
+      <View>
+  {photoMaterial.map((uri, index) => (
+    <Image key={index} source={{ uri }} style={styles.imagePreview} />
+  ))}
+</View>
 
-          <Image
-            source={{ uri: consultation.photo_material[0] }}
-            style={styles.photo}
-          />
-        ) : (
-          // Utilisation d'une View réduite à la taille minimale
-          <View style={styles.noPhotoContainer}>
-            {console.log("Rendering: No photo available")}
-            <Text style={styles.noPhoto}>No photo available</Text>
-          </View>
-        )}
+         {/* Bouton "Afficher" */}
+         <View style={styles.headerContainer}>
+    <TouchableOpacity
+      style={styles.viewButton}
+      onPress={() => navigation.navigate('ConsultationDetailView', { consultation })}>
+      <Text style={styles.buttonText}>Show All</Text>
+    </TouchableOpacity>
 
     <TouchableOpacity
       style={styles.deleteButton}
       onPress={() => handleRemoveConsultation(consultation._id)}>
         <AntDesign name="delete" size={28} color="red" />
     </TouchableOpacity>
+    </View>
 
       </View>
       ))}
@@ -288,6 +292,7 @@ const statusOptions = [
             transparent={true}
             animationType="slide"
             onRequestClose={() => setConsultationModalVisible(false)}>
+              <ScrollView>
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Add Consultation</Text>
@@ -361,6 +366,7 @@ const statusOptions = [
                 </TouchableOpacity>
               </View>
             </View>
+            </ScrollView>
           </Modal>
 
     </SafeAreaView>
@@ -493,7 +499,6 @@ photo: {
   height: 200,
   resizeMode: 'cover',
   marginVertical: 10,
-  borderRadius: 10,
 },
 noPhotoContainer: {
   marginVertical: 0,
@@ -538,6 +543,13 @@ photoButton: {
 photoButtonText: { color: '#000000', fontSize: 16 },
 imagePreview: { width: '100%', height: 200, marginBottom: 20 },
 noPhotoText: { color: '#999', marginBottom: 20, fontStyle: 'italic' },
+viewButton: {
+  backgroundColor: '#1abc9c',
+  padding: 10,
+  borderRadius: 5,
+  marginTop: 10,
+  alignItems: 'center',
+},
 
 
 })

@@ -33,9 +33,10 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
   consultationCreateOne(record: $record) {
     record {
       _id
-      medical_staff
-      patient{
-        name
+      medical_staff {
+        _id
+      }
+      patient {
         _id
       }
       temperature
@@ -45,6 +46,15 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
       status
       createdAt
       photo_material
+    }
+    error {
+      message
+      ... on ValidationError {
+        errors {
+          message
+        }
+        message
+      }
     }
     recordId
   }
