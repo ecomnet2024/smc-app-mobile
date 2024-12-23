@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, Button } from 'react-native'
-import React,  { useEffect }  from 'react'
+import React,  { useEffect, useContext }  from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput, ScrollView } from 'react-native-gesture-handler'
 import { Image } from 'react-native'
@@ -10,9 +10,14 @@ import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
 import Testconsult from '../../Components/testconsult';
-import { GET_CONSULTATION } from '../Screens/graphql/Queries';
+import { GET_CONSULTATION } from '../../src/Screens/graphql/Queries';
 import { useFocusEffect } from '@react-navigation/native';
-import { useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client';
+import * as ImagePicker from 'expo-image-picker';
+import { jwtDecode } from 'jwt-decode';
+import { useMutation } from '@apollo/client';
+import { USER_UPDATE_PICTURE } from '../../src/Screens/graphql/Mutation'; 
+import SessionContext from '../../Components/SessionProvider';
 
 
 
@@ -20,17 +25,106 @@ const HomeScreen = () => {
 
   const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
   const navigation = useNavigation();
+  const [userName, setUserName] = useState('');
   const [isTokenChecked, setIsTokenChecked] = useState(false); // État pour savoir si la vérification est terminée
+  const { handleLogout } = useContext(SessionContext); // Importe handleLogout depuis le contexte
+  const [profileImage, setProfileImage] = useState(require('../assets/images-user.png')); // Image par défaut
+  const [updateUser] = useMutation(USER_UPDATE_PICTURE); // Mutation GraphQL
+
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (token) {
+          const decodedToken = jwtDecode(token);
+          console.log("token decode",decodedToken);
+          setUserName(decodedToken.name || 'User'); // Définit un nom par défaut si non trouvé
+        }
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setUserName('User');
+      }
+    };
+    fetchUserName();
+  }, []);
+
+  //-----------------------------------------------------------------------------------
+
+  const uploadImageToCloudinary = async (uri) => {
+    const data = new FormData();
+    data.append('file', {
+      uri,
+      name: 'profile_image.jpg',
+      type: 'image/jpeg',
+    });
+    data.append('upload_preset', 'my_preset');
+    data.append('cloud_name', 'djovqbxfl');
+  
+    const response = await fetch('https://api.cloudinary.com/v1_1/djovqbxfl/image/upload', {
+      method: 'POST',
+      body: data,
+    });
+    const result = await response.json();
+    return result.secure_url;
+  };
+  // Function to upload image to Cloudinary
+
+  //------------------------------------------------------------------------------------
+
+
+
+  // Gérer l'image de profil
+  const handleProfileImagePress = async () => {
+    const options = [
+      { text: 'Take a Photo', onPress: () => pickImage('camera') },
+      { text: 'Choose from Gallery', onPress: () => pickImage('gallery') },
+      { text: 'Cancel', style: 'cancel' },
+    ];
+    Alert.alert('Profile Picture', 'Choose an option', options);
+  };
+  const pickImage = async (source) => {
+    try {
+      let result;
+      if (source === 'camera') {
+        result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 1, });
+      } else {
+        result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, quality: 1,  });
+      }
+      if (!result.canceled) {
+        const { uri } = result.assets[0];
+        setProfileImage({ uri }); // Mise à jour de l'image affichée
+
+        console.log('Image sélectionnée avec succès:', uri);
+        // Upload vers Cloudinary
+        const cloudinaryUrl = await uploadImageToCloudinary(uri);
+        console.log('Image uploadée sur Cloudinary:', cloudinaryUrl);
+        // Mise à jour de l'utilisateur via GraphQL
+        const userId = await AsyncStorage.getItem('userId'); // ID de l'utilisateur
+        if (userId) {
+          await updateUser({
+            variables: {
+              id: userId,
+              record: { image: cloudinaryUrl },
+            },
+          });
+          console.log('Utilisateur mis à jour avec succès');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du traitement de l’image:', error);
+    }
+  };
 
 
   useEffect(() => {
     const interval = setInterval(() => {
-      refetch(); // Rafraîchir automatiquement toutes les 50 secondes
+      refetch(); // Rafraîchir automatiquement toutes les 60 secondes
       console.log('Data refreshed automatically');
-    }, 50000);
+    }, 70000);
   
     return () => clearInterval(interval); // Nettoyer l'intervalle
-  }, []);
+  }, [refetch]);
   
   useFocusEffect(
     React.useCallback(() => {
@@ -48,21 +142,29 @@ const HomeScreen = () => {
         setUserEmail(storedEmail);
       }
     };
-
     fetchUserEmail();
   }, []);
 
-  const handleLogout = async () => {
-    // Supprimer le token et le firstName lors de la déconnexion
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('userEmail');
-    navigation.replace('Login');
-  };
+  // const handleLogout = async () => {
+  //   // Supprimer le token et le firstName lors de la déconnexion
+  //   await AsyncStorage.removeItem('token');
+  //   await AsyncStorage.removeItem('userEmail');
+  //   navigation.replace('Login');
+  // };
 
 
   const handleNewConsultation=()=>{
      navigation.navigate("NewPatient");
   }
+
+  if (loading) {
+    return <SafeAreaView><Text>Loading...</Text></SafeAreaView>; // Ou votre propre composant de chargement
+  }
+  
+  if (error) {
+    return <SafeAreaView><Text>Error: {error.message}</Text></SafeAreaView>;
+  }
+
 
   return (
     <GestureHandlerRootView>
@@ -91,7 +193,11 @@ const HomeScreen = () => {
         <View style={styles.topRow}>
           <Image source={require('../assets/Group 13.png')} style={styles.logo} />
           <View style={styles.centerRow}>
-            <Image source={require('../assets/images-user.png')} style={styles.profileImage} />
+
+          <TouchableOpacity onPress={handleProfileImagePress}>
+          <Image source={profileImage} style={styles.profileImage} />
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Entypo name="log-out" size={24} color="white" />
               <Text style={styles.logoutButtonText}>Logout</Text>
@@ -105,7 +211,7 @@ const HomeScreen = () => {
     
           <View style={styles.centerRow}>
           <Ionicons name="menu" size={30} color="white" style={styles.menuIcon} />
-            <Text style={styles.email}>  Hello,{"\n"}{userEmail}</Text>
+            <Text style={styles.email}>  Hello,{"\n"}{userName}</Text>
           </View>
         </View>
 
@@ -240,9 +346,9 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   profileImage: {
-    width: 41,
-    height: 41,
-    borderRadius: 20,
+    width: 45,
+    height: 45,
+    borderRadius: 25,
     marginLeft: 125,
   },
   searchContainer: {

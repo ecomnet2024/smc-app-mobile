@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View , ScrollView, Pressable, Platform, Alert, RefreshControl} from 'react-native'
+import { StyleSheet, Text, View , RefreshControl} from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
@@ -12,17 +12,24 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Testconsult = () => {
 
-// Requête GraphQL pour récupérer les consultations
-   const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
-   const [searchQuery, setSearchQuery] = useState('');
-   const [refreshing, setRefreshing] = useState(false);
+  const BATCH_SIZE = 6; // Nombre d'éléments à afficher par lot
+
+  const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
+  const [allConsultations, setAllConsultations] = useState([]);
+  const [displayedConsultations, setDisplayedConsultations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentBatch, setCurrentBatch] = useState(1); // Indice du lot actuel
+  const [refreshing, setRefreshing] = useState(false);
 
    const navigation = useNavigation();
 
-    // Rafraîchir les données au montage
-  useEffect(() => {
-    refetch(); // Recharger les données au montage
-  }, [refetch]);
+   // Charger toutes les données initiales
+   useEffect(() => {
+    if (data?.consultationMany) {
+      setAllConsultations(data.consultationMany);
+      setDisplayedConsultations(data.consultationMany.slice(0, BATCH_SIZE)); // Charger le premier lot
+    }
+  }, [data]);
 
  // Gérer l'affichage pendant le chargement ou en cas d'erreur
     if(loading){
@@ -30,35 +37,59 @@ const Testconsult = () => {
     }else{
         console.log("Error fetching consultations:", error)
     }
-
     console.log("data ", data)
- 
-    // Récupérer les consultations de la réponse GraphQL
-   const consultations = data?.consultationMany || [];
-
-// Filtrer les consultations en fonction de searchQuery
-const filteredConsultations = consultations.filter((item) => {
-  const patientName = item.patient?.name || "Unknown";
-    // Vérification si le nom du patient contient la recherche
-    return patientName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
 
 
- // Fonction pour gérer le rafraîchissement
- const onRefresh = async () => {
-  setRefreshing(true);
-  try {
-    await refetch();
-  } catch (error) {
-    console.error('Error refreshing data:', error);
-  }
-  setRefreshing(false);
-}; 
+    // Fonction pour charger le lot suivant
+  const loadMoreData = () => {
+    const nextBatchStart = currentBatch * BATCH_SIZE;
+    const nextBatchEnd = nextBatchStart + BATCH_SIZE;
 
+    if (nextBatchStart < allConsultations.length) {
+      setDisplayedConsultations((prev) => [
+        ...prev,
+        ...allConsultations.slice(nextBatchStart, nextBatchEnd),
+      ]);
+      setCurrentBatch((prev) => prev + 1);
+    }
+  };
+
+
+  // Fonction pour gérer la recherche
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      // Si la barre de recherche est vide, afficher les consultations par lots
+      setDisplayedConsultations(allConsultations.slice(0, currentBatch * BATCH_SIZE));
+    } else {
+      // Appliquer la recherche sur toutes les consultations
+      const filteredResults = allConsultations.filter((item) => {
+        const patientName = item.patient?.name || "Unknown";
+        return patientName.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+      setDisplayedConsultations(filteredResults); // Afficher uniquement les résultats de la recherche
+    }
+  }, [searchQuery, allConsultations, currentBatch]);
+
+
+  // Fonction de rafraîchissement
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const refreshedData = await refetch();
+      setAllConsultations(refreshedData.data.consultationMany);
+      setDisplayedConsultations(refreshedData.data.consultationMany.slice(0, BATCH_SIZE));
+      setCurrentBatch(1); // Réinitialiser les lots
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement :', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+
+ // Rendu d'un élément de la liste
 const renderConsultation = ({ item }) => {
-  const patientName = item.patient?.name || "Unknown";
-  const patientId = item.patient?._id;
-
+  const patientName = item.patient?.sn || "Unknown";
 
   return (
     <GestureHandlerRootView>
@@ -69,9 +100,8 @@ const renderConsultation = ({ item }) => {
     >
         <Text style={styles.title}>Patient: {patientName}</Text>
         <Text>Complain: {item.complain}</Text>
-        <Text>Blood Pressure: {item.blood_pressure}</Text>
-        <Text>Pulse: {item.pulse}</Text>
-        <Text>Status: {item.status}</Text>
+        <Text>Created at: {new Date(item.createdAt).toISOString().split("T")[0]}</Text>
+        <Text>Status:<Text style={{fontWeight:'bold', color: '#3C58C1'}}> {item.status}</Text></Text>
 
     </TouchableOpacity>
     </SafeAreaView>
@@ -90,17 +120,28 @@ const renderConsultation = ({ item }) => {
                 onChangeText={setSearchQuery}
             />
           </View>
-          <View>
-             <FlatList
-               data={filteredConsultations}
-               renderItem={renderConsultation}
-               keyExtractor={(item) => item._id}
-               ListEmptyComponent={<Text style={styles.emptyText}>No consultations found</Text>}
-               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-              }
-            />
-          </View>
+          {loading ? (
+        <Text>Loading...</Text>
+      ) : error ? (
+        <Text>Error loading consultations</Text>
+      ) : (
+        <FlatList
+        data={displayedConsultations}
+        renderItem={renderConsultation}
+        keyExtractor={(item) => item._id}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          searchQuery.trim() === '' &&
+          displayedConsultations.length < allConsultations.length ? (
+            <Text>Loading more...</Text>
+          ) : (
+            <Text>No more consultations</Text>
+          )
+        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      />
+      )}
    </View>
       );
   };
@@ -141,6 +182,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 7,
     marginBottom: 6,
+  },
+  loadingText: {
+    textAlign: 'center',
+    padding: 10,
+    color: 'grey',
   },
 
 })

@@ -1,20 +1,14 @@
-import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, Image } from 'react-native'
-import { GestureHandlerRootView, TextInput, ScrollView } from 'react-native-gesture-handler'
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, ActivityIndicator } from 'react-native'
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler'
 import React from 'react'
 import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
-import { CREATE_CONSULTATION, REMOVE_CONSULTATION } from '../Screens/graphql/Mutation';
-import { GET_CONSULTATION_BY_PATIENT } from '../Screens/graphql/Queries';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {jwtDecode} from 'jwt-decode';
-import { SelectList } from 'react-native-dropdown-select-list';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { REMOVE_CONSULTATION } from '../../src/Screens/graphql/Mutation';
+import { GET_CONSULTATION_BY_PATIENT } from '../../src/Screens/graphql/Queries';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
 
 
@@ -27,13 +21,18 @@ const ConsultationDetails = ({ route }) => {
    console.log("Consultation Details Patient :", consultation.patient); 
    console.log("Consultation Details Consultation:", consultation);
    console.log("Received consultation data:", consultation);
-console.log("Photo material:", photoMaterial);
+   console.log("Photo material:", consultation.photoMaterial);
 
-   const photoMaterial = consultation.photo_material || [];
+   console.log(consultation);
+   console.log(patient);
+
    let patientId= consultation.patient._id;
-   let patientObj= consultation.patient;
    console.log("Consultation Details PatientID :", patientId);
-   console.log("Consultation Details Patient object :", patientObj);
+
+   const consultationId= consultation._id;
+   console.log('Consultation ID to remove:', consultationId);
+   console.log('Consultation ID:', consultationId);
+
    
   const { loading, error, data, refetch } = useQuery(GET_CONSULTATION_BY_PATIENT, {
     variables: { patientId },
@@ -51,170 +50,63 @@ console.log("Photo material:", photoMaterial);
       refetch();  // Recharger les données de consultations
     },
   });
-
-  // États pour les modales
-  const [isConsultationModalVisible, setConsultationModalVisible] = useState(false);
-
-  // États pour les nouveaux formulaires
-  const [newConsultationData, setNewConsultationData] = useState({
-    complain: '',
-    blood_pressure: '',
-    pulse: '',
-    createdAt: new Date(),
-    temperature: '',
-    status: 'New',
-    photo_material: ''
-  });
-
-    // Prise de la photo avec conversion en Base64
-const handlePhotoPick = async () => {
-  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-  if (!permissionResult.granted) {
-    Alert.alert('Permission Required', 'Camera access is needed to take a photo.');
-    return;
-  }
-  const photo = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-  });
-  if (!photo.canceled) {
-    setNewConsultationData({ ...newConsultationData, photo_material: photo.assets[0].uri });
-  }
-};
-
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-
-  const onStartDateChange = (event, selectedDate) => {
-    setShowStartDatePicker(false);
-    setNewConsultationData({ ...newConsultationData, createdAt: selectedDate });
-  };
-  const [date, setDate] = useState();
+  console.log('Consultation ID to remove:', consultationId);
 
 
- // Hook Apollo pour la mutation de création de consultation
- const [consultationCreateOne, { loading: loadingConsultation, error: errorConsultation }] = useMutation(CREATE_CONSULTATION , {
-  onCompleted: () => {
-    refetch();  // Recharger les données de consultations
-  },
-});
-
- const handleAddConsultation = async () => {
-   const doctorId = await getDoctorIdFromToken();
-   if (!doctorId) {
-     Alert.alert("Error", "Unable to retrieve doctor ID");
-     return;
-   }
-  // Vérification des champs vides
-  if (
-    !newConsultationData.complain ||
-    !newConsultationData.blood_pressure ||
-    !newConsultationData.pulse ||
-    !newConsultationData.temperature ||
-    !newConsultationData.status
-  ) {
-    Alert.alert("Error", "All fields are required");
-    return;
-  }
-
-  // Vérification des valeurs spécifiques
-  const temperature = parseFloat(newConsultationData.temperature);
-  if (temperature < 30 || temperature > 42) {
-    Alert.alert("Error", " temperature must be between 30°C and 42°C");
-    return;
-  }
-
-  const pulse = parseFloat(newConsultationData.pulse);
-  if (pulse < 40 || pulse > 180) {
-    Alert.alert("Error", "Pulse must be between 40 and 180 bpm");
-    return;
-  }
-
-   try {
-     const { data } = await consultationCreateOne({
-       variables: {
-         record: {
-         complain: newConsultationData.complain,
-         blood_pressure: newConsultationData.blood_pressure,
-         pulse: parseFloat(newConsultationData.pulse),
-         temperature: parseFloat(newConsultationData.temperature),
-         status: newConsultationData.status,
-         createdAt: newConsultationData.createdAt,
-         patient: patientId,  // Utiliser l'ID du patient actuel
-         medical_staff: doctorId,
-         photo_material: newConsultationData.photo_material, // Ajouter l'image en Base64
-         }
-       }  
-
-     });
-
-     console.log('Consultation créée:', data.consultationCreateOne);
-     setConsultationModalVisible(false);  // Fermer la modale après création
-
-   } catch (err) {
-     console.error("Erreur lors de la création de la consultation:", err);
-   }
-
-};
-
-const handleRemoveConsultation = async (consultationId) => {
-  try {
-    const { data } = await removeConsultation({ variables: { id: consultationId } });
-     // Actualiser la liste des consultations après suppression
-     
-
-    if (data.consultationRemoveById.recordId) {
-      Alert.alert('Success', 'Consultation successfully removed.');
-     
-    } else {
-      Alert.alert('Error', 'Failed to remove consultation.');
-    }
-  } catch (err) {
-    console.error('Error while removing consultation:', err);
-    Alert.alert('Error', 'An unexpected error occurred.');
-  }
-
-  useFocusEffect(
-    React.useCallback(() => {
-      // Refetch les données lorsque la page devient active
-      refetch();
-    }, [])
-  );
-
-};
-
-
-// Options pour le champ Status
-const statusOptions = [
-  { key: 'New', value: 'New' },
-  { key: 'In_Review', value: 'In_Review' },
-  { key: 'Closed', value: 'Closed' },
-];
-
-
-  const getDoctorIdFromToken = async () => {
+  const handleRemoveConsultation = async (consultationId) => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log("Token_present",token);
-      
-      if (token) {
-        const tokenString = String(token)
-        const decodedToken = jwtDecode(tokenString);
-        const doctorId = decodedToken.user_id;
-        console.log("token decode",decodedToken);
-        return doctorId;
-
-      } else {
-        console.error("Token not found");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
+      // Afficher une alerte de confirmation avant de supprimer
+      Alert.alert(
+        'Confirmation',
+        'Are you sure you want to remove this consultation?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes',
+            onPress: async () => {
+              // Si l'utilisateur confirme, procéder à la suppression
+              console.log('Consultation ID to remove:', consultationId);
+              const { data } = await removeConsultation({ variables: { id: consultationId } });
+              
+              // Actualiser la liste des consultations après suppression
+              if (data?.consultationRemoveById?.recordId) {
+                Alert.alert('Success', 'Consultation successfully removed.');
+              } else {
+                Alert.alert('Error', 'Failed to remove consultation.');
+              }
+  
+              // Rafraîchir les données lorsque la page devient active
+              useFocusEffect(
+                React.useCallback(() => {
+                  refetch();
+                }, [])
+              );
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (err) {
+      console.error('Error while removing consultation:', err);
+      Alert.alert('Error', 'An unexpected error occurred.');
     }
   };
 
-  console.log(data);
+const handleDeleteConsultation = (id) => {
+  Alert.alert('Confirmation', 'Are you sure you want to delete this prescription?', [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Delete', style: 'destructive', onPress: () => remove({ variables: { id } }) },
+  ]);
+};
+
+console.log('Navigating with:', { 
+  patient: patient, 
+  patientData: consultation.patient, 
+  patientId: consultation.patient._id 
+});
 
   return (
     <GestureHandlerRootView>
@@ -244,24 +136,26 @@ const statusOptions = [
       <Text style={styles.title}>Details consultation for Patient: {consultation.patient.name}</Text>
           
       <Text style={styles.label}>Complain: <Text style={styles.value}> {consultation.complain}</Text></Text>
-      {/* <Text style={styles.label}>Blood Pressure: <Text style={styles.value}> {consultation.blood_pressure}</Text></Text>
-      <Text style={styles.label}>Pulse: <Text style={styles.value}> {consultation.pulse}</Text></Text> */}
-      <Text style={styles.label}>Temperature: <Text style={styles.value}> {consultation.temperature}</Text></Text> 
       <Text style={styles.label}>Status: <Text style={styles.value}> {consultation.status}</Text></Text> 
-      {/*<Text style={styles.label}>Medications: <Text style={styles.value}> {consultation.medications}</Text></Text>*/} 
       <Text style={styles.label}>Created at: <Text style={styles.value}> {new Date(consultation.createdAt).toISOString().split("T")[0]}</Text></Text>
       
-      <View>
-  {photoMaterial.map((uri, index) => (
-    <Image key={index} source={{ uri }} style={styles.imagePreview} />
-  ))}
-</View>
+       {/* Rendre les images spécifiques à chaque consultation */}
+    <View>
+      {consultation.photo_material && consultation.photo_material.length > 0 ? (
+        consultation.photo_material.map((uri, index) => (
+          <Image key={index} source={{ uri }} style={styles.imagePreview} />
+        ))
+      ) : (
+        <Text style={styles.noPhotoText}>No photos available</Text>
+      )}
+    </View>
+
 
          {/* Bouton "Afficher" */}
          <View style={styles.headerContainer}>
     <TouchableOpacity
       style={styles.viewButton}
-      onPress={() => navigation.navigate('ConsultationDetailView', { consultation })}>
+      onPress={() => navigation.navigate('ConsultationTabs', { consultation })}>
       <Text style={styles.buttonText}>Show All</Text>
     </TouchableOpacity>
 
@@ -279,95 +173,12 @@ const statusOptions = [
       !loading && !error && <Text style={styles.noData}>No consultations available for this patient.</Text>
     )}
 
-
          <TouchableOpacity
               style={styles.button}
-              onPress={() => setConsultationModalVisible(true)}>
+              onPress={() => navigation.navigate('NewConsultation', { patient: patient ,
+                patientData: consultation.patient, patientId:consultation.patient._id})}>
               <Text style={styles.buttonText}>Add Consultation</Text>
          </TouchableOpacity>
-
-          {/* Modale pour Ajouter une Consultation */}
-          <Modal
-            visible={isConsultationModalVisible}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setConsultationModalVisible(false)}>
-              <ScrollView>
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Add Consultation</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Complain"
-                  value={newConsultationData.complain}
-                  onChangeText={(text) => setNewConsultationData({ ...newConsultationData, complain: text })}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Blood Pressure"
-                  keyboardType='numeric'
-                  value={newConsultationData.blood_pressure}
-                  onChangeText={(text) => setNewConsultationData({ ...newConsultationData, blood_pressure: text })}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Pulse"
-                  keyboardType='numeric'
-                  value={newConsultationData.pulse}
-                  onChangeText={(text) => setNewConsultationData({ ...newConsultationData, pulse: text })}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Temperature"
-                  keyboardType='numeric'
-                  value={newConsultationData.temperature}
-                  onChangeText={(text) => setNewConsultationData({ ...newConsultationData, temperature: text })}
-                />
-
-         <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
-          <Text>Date of creation: {newConsultationData.createdAt.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={newConsultationData.createdAt}
-            mode="date"
-            display="default"
-            onChange={onStartDateChange}
-          />
-        )}
-
-        <SelectList
-          setSelected={(val) => setNewConsultationData({ ...newConsultationData, status: val })}
-          data={statusOptions}
-          placeholder="Select Status"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        />
-
-         <Text style={styles.label}>Photo Material</Text>
-      <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>
-        <Text style={styles.buttonText}>Take a Photo</Text>
-      </TouchableOpacity>
-
-      {newConsultationData.photo_material ? (
-        <Image source={{ uri: newConsultationData.photo_material }} style={styles.imagePreview} />
-      ) : (
-        <Text style={styles.noPhotoText}>No photo selected</Text>
-      )}
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleAddConsultation}>
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={() => setConsultationModalVisible(false)}>
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            </ScrollView>
-          </Modal>
 
     </SafeAreaView>
     </GestureHandlerRootView>
@@ -484,12 +295,6 @@ modalText: {
   marginBottom: 10,
 },
 image: { width: '100%', height: 300, marginTop: 20 },
-/*photo: {
-  width: '100%',
-  height: 200,
-  resizeMode: 'cover',
-  marginBottom: 10,
-},*/
 noPhoto: {
   fontSize: 12,
   color: 'gray',

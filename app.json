@@ -27,8 +27,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "45126e82-907e-4d21-9ae7-3f5b59892234"
+        "projectId": "6aba79ec-496d-4a67-b342-fbc20baeef6e"
       }
-    }
+    },
+    "owner": "neyrod"
   }
 }

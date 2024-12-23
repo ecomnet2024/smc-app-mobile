@@ -9,7 +9,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useMutation } from '@apollo/client';
-import { USER_LOGIN } from './graphql/Mutation';
+import { USER_LOGIN } from '../../src/Screens/graphql/Mutation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from "react-native-vector-icons/MaterialIcons";
 

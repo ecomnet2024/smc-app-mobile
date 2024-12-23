@@ -9,7 +9,7 @@ import { Image } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useMutation, useQuery } from '@apollo/client';
-import { CREATE_USERS } from './graphql/Mutation';
+import { CREATE_USERS } from '../../src/Screens/graphql/Mutation';
 import { Alert } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Button } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import { useMutation, useQuery } from '@apollo/client';
-import { CREATE_PATIENT } from '../Screens/graphql/Mutation';
-import { GET_CLINIC ,GET_PATIENT } from '../Screens/graphql/Queries';
+import { CREATE_PATIENT } from '../../src/Screens/graphql/Mutation';
+import { GET_CLINIC ,GET_PATIENT } from '../../src/Screens/graphql/Queries';
 import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -79,6 +79,9 @@ const patientOptions =
     navigation.navigate('NewConsultation', { patient: selectedPatient });
   };
 
+  const sn=" ";
+  const clinicId = patientData?.clinic?._id;
+
   
   const handleSubmit = async () => {
     if (
@@ -94,7 +97,8 @@ const patientOptions =
       alert('Please fill in all required fields');
       return;
     }
-    const sn =" ";
+
+    console.log("clinic id",clinicId);
 
     try {
       const result = await patientCreateOne({
@@ -103,15 +107,24 @@ const patientOptions =
             name: patientData.name,
             age: parseFloat(patientData.age),
             gender: patientData.gender,
-            clinic: patientData.clinic,
+            clinic: "676418c44715a630db6272a4",
             email: patientData.email,
             phone: patientData.phone,
             status: patientData.status,
-            sn: sn,
+            sn : sn
           },
         },
       });
-      console.log('Données envoyées pour création du patient :', patientData);
+      console.log('Données envoyées pour création du patient :',
+        "name:" ,patientData.name,
+        "age:"  ,parseFloat(patientData.age),
+        "gender:" ,patientData.gender,
+        "clinic:", patientData.clinic._id,
+        "email:" ,patientData.email,
+        "phone:" ,patientData.phone,
+        "status:" ,patientData.status,
+    );
+
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
       console.log("PatientData",result);
       if (result.data && result.data.patientCreateOne && result.data.patientCreateOne.record) {

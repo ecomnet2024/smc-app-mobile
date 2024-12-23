@@ -59,36 +59,8 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
     recordId
   }
 }
+`
 
-`
-export const CREATE_PRESCRIPTION = gql`
-mutation  prescriptionCreateOne($record: CreateOnePrescriptionInput!) {
-  prescriptionCreateOne(record: $record) {
-    record {
-      Contraindications
-      start_date
-      medication
-      end_date
-      dosage
-      createdAt
-      _id
-    }
-    error {
-      message
-      ... on ValidationError {
-        message
-      }
-      ... on MongoError {
-        message
-      }
-      ... on RuntimeError {
-        message
-      }
-    }
-    recordId
-  }
-}
-`
 export const CREATE_PATIENT = gql`
 mutation patientCreateOne($record: CreateOnePatientInput!) {
   patientCreateOne(record: $record) {
@@ -106,12 +78,10 @@ mutation patientCreateOne($record: CreateOnePatientInput!) {
       age
       email
       gender
-      clinic{
-        _id
-        name
-      }
+      clinic
       status
       phone
+      sn
     }
     recordId
   }
@@ -121,21 +91,49 @@ export const REMOVE_CONSULTATION = gql`
 mutation ConsultationRemoveById($id: MongoID!) {
   consultationRemoveById(_id: $id) {
     recordId
-    error {
-      message
-      ... on ValidationError {
-        message
-      }
-      ... on MongoError {
-        message
-      }
-    }
   }
 }
 `
-export const UPDATE_CONSULTATION = gql`
-mutation ConsultationUpdateById($id: MongoID!, $record: UpdateByIdConsultationInput!) {
-  consultationUpdateById(_id: $id, record: $record) {
+export const REMOVE_MEDICATION = gql`
+mutation MedicationRemoveById($id: MongoID!) {
+  medicationRemoveById(_id: $id) {
+    recordId
+    error {
+      message
+    }
+  }
+}`
+export const REMOVE_ALLERGY = gql`
+mutation AllergyRemoveById($id: MongoID!) {
+  allergyRemoveById(_id: $id) {
+    recordId
+    error {
+      message
+    }
+  }
+}`
+export const REMOVE_PRESCRIPTION = gql`
+mutation PrescriptionRemoveById($id: MongoID!) {
+  prescriptionRemoveById(_id: $id) {
+    recordId
+    error {
+      message
+    }
+  }
+}`
+//-------------------------------------------------------------------------------------------------------------------
+export const CREATE_VACCINATION = gql`
+mutation VaccinationCreateOne($record: CreateOneVaccinationInput!) {
+  vaccinationCreateOne(record: $record) {
+    record {
+      _id
+      vaccine
+      date
+      patient
+      consultation
+      createdBy
+      medical_staff
+    }
     recordId
     error {
       message
@@ -143,87 +141,113 @@ mutation ConsultationUpdateById($id: MongoID!, $record: UpdateByIdConsultationIn
         message
       }
     }
+  }
+}`
+
+export const CREATE_ALLERGY = gql`
+mutation AllergyCreateOne($record: CreateOneAllergyInput!) {
+  allergyCreateOne(record: $record) {
     record {
-      medical_staff
-      call_center_feedback
-      doctor_feedback
-      patient {
-        name
-        age
-        gender
-        clinic {
-          name
-          region
-          city
-          street_location
-          phoneNumber
-          email
-          website
-          _id
-          createdAt
-          updatedAt
-        }
-        phone
-        status
-        email
-        insurance_number
-        _id
-        createdAt
-        updatedAt
-      }
-      temperature
-      complain
-      Contraindications
-      pulse
-      blood_pressure
-      status
-      surgical_history
-      emergency
-      pregnancy
-      lastEditBy
-      closedBy
-      photo_material
-      labResults
-      vaccinations
-      allergies
-      visits
-      medications
-      prescriptions
       _id
+      patient
+      consultation
+      createdBy
+      medical_staff
+      substance
+      description
       createdAt
-      updatedAt
-      allergy {
-        _id
+    }
+    error {
+      message
+      ... on ValidationError {
+        message
       }
-      prescription {
-        _id
-      }
-      medication {
-        _id
-      }
-      vaccination {
-        vaccine
-        patient
-        medical_staff
-        nurse
-        date
-        _id
-        createdAt
-        updatedAt
-      }
-      visit {
-        patient
-        nurse
-        visit_date
-        symptoms
-        diagnosis
-        treatment
-        notes
-        _id
-        createdAt
-        updatedAt
+    }
+    recordId
+  }
+}`
+
+export const CREATE_MEDICATION = gql`
+mutation MedicationCreateOne($record: CreateOneMedicationInput!) {
+  medicationCreateOne(record: $record) {
+    record {
+      _id
+      consultation
+      description
+      dosage
+      start_date
+      end_date
+      patient
+      name
+      createdAt
+      createdBy
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
       }
     }
   }
-}
-`
+}`
+export const ADD_FEEDBACK = gql`
+mutation ConsultationUpdateById($id: MongoID!, $record: UpdateByIdConsultationInput!) {
+  consultationUpdateById(_id: $id, record: $record) {
+    record {
+      doctor_feedback {
+        comment
+        createdAt
+        user{
+          _id
+        }
+      }
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`
+
+export const USER_UPDATE_PICTURE = gql`
+mutation UserUpdateById($id: MongoID!, $record: UpdateByIdUserInput!) {
+  userUpdateById(_id: $id, record: $record) {
+    record {
+      image
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`
+export const CREATE_PRESCRIPTION = gql`
+mutation PrescriptionCreateOne($record: CreateOnePrescriptionInput!) {
+  prescriptionCreateOne(record: $record) {
+    record {
+      _id
+      consultation
+      contraindications
+      medication
+      start_date
+      end_date
+      patient
+      createdBy
+      createdAt
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`

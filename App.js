@@ -22,6 +22,7 @@ import ConsultationTabs from './src/Screens/ConsultationTabs';
 import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SessionProvider } from './Components/SessionProvider';
 
 
 
@@ -59,45 +60,6 @@ function HomeTabNavigator() {
     </Tab.Navigator>
   );
 }
-
-// Tab Navigator pour les objets liés à une consultation
-function ConsultationTabNavigator({ route }) {
-  const { consultationId } = route.params; // Récupérer l'ID de la consultation
-
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === 'Medications') {
-            iconName = focused ? 'medkit' : 'medkit-outline';
-          } else if (route.name === 'Prescriptions') {
-            iconName = focused ? 'document' : 'document-outline';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-        tabBarActiveTintColor: '#007aff',
-        tabBarInactiveTintColor: '#8e8e93',
-      })}
-    >
-      <Tab.Screen
-        name="Medications"
-        component={MedicationScreen}
-        initialParams={{ consultationId }} // Passer l'ID à la page
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Prescriptions"
-        component={PrescriptionScreen}
-        initialParams={{ consultationId }} // Passer l'ID à la page
-        options={{ headerShown: false }}
-      />
-    </Tab.Navigator>
-  );
-}
-
 
 function SplashScreen({ navigation }) {
   // Rediriger vers la page d'accueil après 3 secondes
@@ -162,6 +124,7 @@ function AuthStack() {
       <Stack.Screen name="HomeTabs" options={{ headerShown: false }} component={HomeTabNavigator} />
       <Stack.Screen name="NewPatient" options={{ headerShown: false }} component={NewPatientScreen} />
       <Stack.Screen name="Details" options={{ headerShown: false }} component={ConsultationDetails} />
+      <Stack.Screen name="ConsultationTabs" options={{ headerShown: false }} component={ConsultationTabs} />
 
     </Stack.Navigator>
   );
@@ -220,7 +183,9 @@ export default function App() {
   return (
     <ApolloProvider client={client}>
     <NavigationContainer>
+      <SessionProvider>
        <AuthStack />
+       </SessionProvider>
     </NavigationContainer>
     </ApolloProvider>
   );

@@ -10,8 +10,6 @@ query Query {
       createdAt
     }
   }
-  
-
 `
 export const GET_CONSULTATION = gql`
 query consultationMany {
@@ -21,6 +19,34 @@ query consultationMany {
       name
       createdAt
       age
+      gender
+      sn
+      
+    }
+    _id
+    complain
+    medications
+    temperature
+      blood_pressure
+      pulse
+      status
+      createdAt
+      photo_material
+    
+  }
+}`
+
+export const GET_CONSULTATION_MENU = gql`
+query consultationMany ($limit: Int!){
+  consultationMany(limit: $limit) {
+    patient{
+      _id
+      name
+      createdAt
+      age
+      gender
+      sn
+      
     }
     _id
     complain
@@ -52,12 +78,14 @@ query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
       name
       createdAt
       age
+      gender
+      sn
+      
     }
   }
 }
 `
 export const GET_CLINIC = gql`
-
 query ClinicMany {
   clinicMany {
     _id
@@ -69,7 +97,6 @@ query ClinicMany {
   }
 }
  `
- 
   export const GET_PATIENT = gql`
   query PatientMany {
     patientMany {
@@ -78,8 +105,79 @@ query ClinicMany {
       age
       gender
       status
+      sn
     }
   }
 `
+export const GET_VACCINATION = gql`
+query VaccinationMany($filter: FilterFindManyVaccinationInput) {
+  vaccinationMany(filter: $filter) {
+    date
+    vaccine
+    createdAt
+  }
+}`
 
+export const GET_ALLERGY = gql`
+query AllergyMany($filter: FilterFindManyAllergyInput) {
+  allergyMany(filter: $filter) {
+    _id
+    createdAt
+    description
+    substance
+  }
+}`
+
+export const GET_MEDICATION = gql`
+query MedicationMany($filter: FilterFindManyMedicationInput) {
+  medicationMany(filter: $filter) {
+    _id
+    createdAt
+    description
+    dosage
+    end_date
+    start_date
+    name
+  }
+}
+`;
+
+export const GET_FEDDBACK = gql`
+query Doctor_feedback($id: MongoID!) {
+  consultationById(_id: $id) {
+    doctor_feedback {
+      user {
+        _id
+        first_name
+      }
+      comment
+      createdAt
+    }
+    call_center_feedback {
+      comment
+      createdAt
+      user {
+        _id
+      first_name
+      }
+    }
+    _id
+  }
+}`
+
+export const GET_PRESCRIPTION = gql`
+query PrescriptionMany($filter: FilterFindManyPrescriptionInput) {
+  prescriptionMany(filter: $filter) {
+    _id
+    contraindications
+    dosage
+    start_date
+    end_date
+    medicationDetails {
+      name
+      description
+      dosage
+    }
+  }
+}`
 ;

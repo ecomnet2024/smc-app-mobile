@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import { Image } from 'react-native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { useMutation } from '@apollo/client';
-import { CREATE_CONSULTATION} from '../Screens/graphql/Mutation';
+import { CREATE_CONSULTATION} from '../../src/Screens/graphql/Mutation';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,13 +18,13 @@ import { ActivityIndicator } from 'react-native';
 
 
 
-
 const NewConsultationScreen = () => {
 
   const route = useRoute();
+  const { patient, patientData, patientId } = route.params || {};
 
-  const { patient } = route.params;
-  const { patientData } = route.params; // Récupérer les données du patient
+  console.log('Route params:', { patient, patientData, patientId });
+
   const { name, age, gender} = patientData || {}; // Déstructurer les données
 
   const [loading, setLoading] = useState(false);
@@ -41,12 +41,6 @@ const NewConsultationScreen = () => {
         const tokenString = String(token)
         const decodedToken = jwtDecode(tokenString);
         const doctorId = decodedToken.user_id;
-
-        // const doctorData = {
-        //   _id: decodedToken.user_id, // ID du médecin à partir du token
-        //   name: decodedToken.name, // Extrait du token ou backend
-        //   role: decodedToken.role, // Rôle, si disponible
-        // };
 
         console.log("token decode",decodedToken);
         return doctorId;
@@ -137,11 +131,6 @@ const uploadImageToCloudinary = async (fileUri) => {
 
   console.log('Uploading to Cloudinary:', fileUri);
 
-  // if (!consultationData.photo_material) {
-  //   Alert.alert('No image selected', 'Please retake an image before uploading.');
-  //   return;
-  // }
-
   const formData = new FormData();
     formData.append('file', {
       uri: fileUri,
@@ -201,18 +190,18 @@ const uploadImageToCloudinary = async (fileUri) => {
     }
 
     const medical_staff_Id = await getDoctorIdFromToken();
-    const patientID = patient?._id;
+    const patientID = patientId || patient?._id;
 
-    // const patient = {
-    //   _id: patient?._id, // Assurez-vous que patient existe
-    //   name: patient?.name,
-    //   age: patient?.age,
-    // };
 
     if (!medical_staff_Id || !patientID) {
       Alert.alert('Error', 'Missing doctor or patient information.');
       return;
     }
+    if (!patientID) {
+      Alert.alert('Error', 'Patient ID is missing.');
+      return;
+    }
+    
 
 
     try {
@@ -347,20 +336,20 @@ const uploadImageToCloudinary = async (fileUri) => {
         <Text style={styles.label}>Blood Pressure</Text>
         <TextInput
           style={styles.input}
-          keyboardType="numeric"
+          keyboardType="numbers-and-punctuation"
           value={consultationData.blood_pressure}
           onChangeText={(text) => setConsultationData({ ...consultationData, blood_pressure: text })}
           placeholder="Enter blood pressure"
         />
 
-         <Text style={styles.label}>Status</Text>
+         {/* <Text style={styles.label}>Status</Text>
         <SelectList
           setSelected={(val) => setConsultationData({ ...consultationData, status: val })}
           data={statusOptions}
           placeholder="Select Status"
           boxStyles={styles.dropdown}
           dropdownStyles={styles.dropdownList}
-        />
+        /> */}
 
          <Text style={styles.label}>Photo Material</Text>
       <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>
