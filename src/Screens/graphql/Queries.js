@@ -53,6 +53,7 @@ query consultationMany ($limit: Int!){
     medications
     temperature
       blood_pressure
+      surgical_history
       pulse
       status
       createdAt
@@ -69,6 +70,7 @@ query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
     medications
     temperature
     blood_pressure
+    surgical_history
     pulse
     status
     photo_material
@@ -149,6 +151,7 @@ query Doctor_feedback($id: MongoID!) {
       user {
         _id
         first_name
+        image
       }
       comment
       createdAt
@@ -159,6 +162,7 @@ query Doctor_feedback($id: MongoID!) {
       user {
         _id
       first_name
+      image
       }
     }
     _id
@@ -178,6 +182,12 @@ query PrescriptionMany($filter: FilterFindManyPrescriptionInput) {
       description
       dosage
     }
+  }
+}`
+export const GET_USER = gql`
+query UserById($id: MongoID!) {
+  userById(_id: $id) {
+    image
   }
 }`
 ;

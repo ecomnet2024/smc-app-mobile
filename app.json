@@ -18,7 +18,19 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "usesCleartextTraffic":true,
+        "permissions": ["ACCESS_FINE_LOCATION","INTERNET"],
+        "intentFilters": [
+          {
+            "action": "VIEW",
+            "data": {
+              "scheme": "http",
+              "host": "*"
+            },
+            "category": ["BROWSABLE", "DEFAULT"]
+          }
+        ]
       },
       "package": "com.tetah.smcmobile"
     },
@@ -30,6 +42,16 @@
         "projectId": "6aba79ec-496d-4a67-b342-fbc20baeef6e"
       }
     },
-    "owner": "neyrod"
+    "owner": "neyrod",
+    "plugins": [
+      [
+      "expo-build-properties",
+      {
+        "android":{
+          "usesCleartextTraffic":true
+        }
+      }
+    ]
+  ]
   }
 }

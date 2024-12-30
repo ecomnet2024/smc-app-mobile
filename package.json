@@ -4,8 +4,8 @@
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -18,14 +18,14 @@
     "@react-navigation/native-stack": "^6.11.0",
     "apollo-server": "^3.13.0",
     "axios": "^1.7.8",
-    "cloudinary-react-native": "^1.0.1",
-    "expo": "^52.0.8",
-    "expo-image-picker": "~16.0.2",
+    "cloudinary-react-native": "^0.0.2",
+    "expo": "~52.0.20",
+    "expo-image-picker": "~16.0.3",
     "expo-status-bar": "~2.0.0",
     "graphql": "^15.9.0",
     "jwt-decode": "^4.0.0",
     "react": "18.3.1",
-    "react-native": "0.76.2",
+    "react-native": "0.76.5",
     "react-native-dotenv": "^3.4.11",
     "react-native-dropdown-select-list": "^2.0.5",
     "react-native-elements": "^3.4.3",
@@ -35,11 +35,14 @@
     "react-native-radio-buttons-group": "^3.1.0",
     "react-native-reanimated": "~3.16.1",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.1.0",
-    "react-native-vector-icons": "^10.2.0"
+    "react-native-screens": "~4.4.0",
+    "react-native-vector-icons": "^10.2.0",
+    "expo-system-ui": "~4.0.6",
+    "expo-build-properties": "~0.13.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "latest"
   },
   "private": true
 }

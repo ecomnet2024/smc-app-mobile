@@ -133,7 +133,7 @@ console.log('Navigating with:', {
       <ScrollView>
       {data.consultationMany.map((consultation) => (
     <View key={consultation._id} style={styles.detailCard}>
-      <Text style={styles.title}>Details consultation for Patient: {consultation.patient.name}</Text>
+      <Text style={styles.title}>Details consultation for Patient: {consultation.patient.sn}</Text>
           
       <Text style={styles.label}>Complain: <Text style={styles.value}> {consultation.complain}</Text></Text>
       <Text style={styles.label}>Status: <Text style={styles.value}> {consultation.status}</Text></Text> 

@@ -1,4 +1,3 @@
-
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -82,31 +81,31 @@ function SplashScreen({ navigation }) {
 }
 
 
-function GetStartedScreen({ navigation }) {
-  return (
-    <GestureHandlerRootView>
-    <View style={styles.getStartedContainer}>
-      <Image 
-        source={require('./src/assets/consultation.png')} // Exemple d'icône
-        style={styles.logo} resizeMode='contain'/>
+// function GetStartedScreen({ navigation }) {
+//   return (
+//     <GestureHandlerRootView>
+//     <View style={styles.getStartedContainer}>
+//       <Image 
+//         source={require('./src/assets/consultation.png')} // Exemple d'icône
+//         style={styles.logo} resizeMode='contain'/>
 
-      <Text style={styles.getStartedText}>Welcome to the App!</Text>
-      <TouchableOpacity 
-        style={styles.getStartedButton} 
-        onPress={() => navigation.replace('Login')} // Redirige vers la page Login
-      >
-        <Text style={styles.getStartedButtonText}>Get Started </Text>
-        <View style={styles.iconContainer}>
-        <AntDesign name="right" size={24} color="gray" style={styles.icon} />
-        <AntDesign name="right" size={24} color="black" style={styles.icon} />
-        <AntDesign name="right" size={24} color="black" style={styles.icon} />
-        </View>
+//       <Text style={styles.getStartedText}>Welcome to the App!</Text>
+//       <TouchableOpacity 
+//         style={styles.getStartedButton} 
+//         onPress={() => navigation.replace('Login')} // Redirige vers la page Login
+//       >
+//         <Text style={styles.getStartedButtonText}>Get Started </Text>
+//         <View style={styles.iconContainer}>
+//         <AntDesign name="right" size={24} color="gray" style={styles.icon} />
+//         <AntDesign name="right" size={24} color="black" style={styles.icon} />
+//         <AntDesign name="right" size={24} color="black" style={styles.icon} />
+//         </View>
 
-      </TouchableOpacity>
-    </View>
-    </GestureHandlerRootView>
-  );
-}
+//       </TouchableOpacity>
+//     </View>
+//     </GestureHandlerRootView>
+//   );
+// }
 
 
 
@@ -117,7 +116,6 @@ function AuthStack() {
       <Stack.Screen name='SignUp' options={{headerShown:false}} component={SignUpScreen} />
       <Stack.Screen name='Login' options={{headerShown:false}} component={LoginScreen} />
       <Stack.Screen name="Splash" options={{ headerShown: false }} component={SplashScreen}  />
-      <Stack.Screen name="GetStarted" options={{ headerShown: false }} component={GetStartedScreen}/>
       <Stack.Screen name='Forgot' options={{headerShown:false}} component={ForgotScreen} />
       <Stack.Screen name='Home' options={{headerShown:false}} component={HomeScreen} />
       <Stack.Screen name='NewConsultation' options={{headerShown:false}} component={NewConsultationScreen} />

@@ -42,6 +42,7 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
       temperature
       blood_pressure
       complain
+      surgical_history
       pulse
       status
       createdAt

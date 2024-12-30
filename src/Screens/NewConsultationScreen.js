@@ -36,15 +36,12 @@ const NewConsultationScreen = () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       console.log("Token_present",token);
-      
       if (token) {
         const tokenString = String(token)
         const decodedToken = jwtDecode(tokenString);
         const doctorId = decodedToken.user_id;
-
         console.log("token decode",decodedToken);
         return doctorId;
-
       } else {
         console.error("Token not found");
         return null;
@@ -61,6 +58,7 @@ const NewConsultationScreen = () => {
     complain: '',
     pulse: '',
     blood_pressure: '',
+    surgical_history: '',
     photo_material: [], // Stockage de l'URI de la photo
     createdAt: new Date(),
     status:'New',
@@ -203,7 +201,6 @@ const uploadImageToCloudinary = async (fileUri) => {
     }
     
 
-
     try {
 
       setLoading(true);
@@ -227,6 +224,7 @@ const uploadImageToCloudinary = async (fileUri) => {
       temperature,
       complain: consultationData.complain,
       pulse,
+      surgical_history:consultationData.surgical_history,
       blood_pressure: consultationData.blood_pressure,
       status: consultationData.status,
       createdAt: consultationData.createdAt,
@@ -244,6 +242,7 @@ const uploadImageToCloudinary = async (fileUri) => {
             complain: consultationData.complain,
             pulse: parseFloat(consultationData.pulse),
             blood_pressure: consultationData.blood_pressure,
+            surgical_history: consultationData.surgical_history,
             status: consultationData.status,
             createdAt: consultationData.createdAt,
             photo_material: photoUrls,
@@ -342,14 +341,14 @@ const uploadImageToCloudinary = async (fileUri) => {
           placeholder="Enter blood pressure"
         />
 
-         {/* <Text style={styles.label}>Status</Text>
-        <SelectList
-          setSelected={(val) => setConsultationData({ ...consultationData, status: val })}
-          data={statusOptions}
-          placeholder="Select Status"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        /> */}
+        <Text style={styles.label}>surgical_history</Text>
+        <TextInput
+          style={styles.textArea}
+          value={consultationData.surgical_history}
+          multiline
+          numberOfLines={4}
+          onChangeText={(value) => setConsultationData({ ...consultationData, surgical_history: value })}
+        />
 
          <Text style={styles.label}>Photo Material</Text>
       <TouchableOpacity style={styles.photoButton} onPress={handlePhotoPick}>

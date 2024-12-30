@@ -10,7 +10,7 @@ import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
 import Testconsult from '../../Components/testconsult';
-import { GET_CONSULTATION } from '../../src/Screens/graphql/Queries';
+import { GET_CONSULTATION, GET_USER } from '../../src/Screens/graphql/Queries';
 import { useFocusEffect } from '@react-navigation/native';
 import { useQuery } from '@apollo/client';
 import * as ImagePicker from 'expo-image-picker';
@@ -26,11 +26,10 @@ const HomeScreen = () => {
   const { loading, error, data, refetch } = useQuery(GET_CONSULTATION);
   const navigation = useNavigation();
   const [userName, setUserName] = useState('');
-  const [isTokenChecked, setIsTokenChecked] = useState(false); // État pour savoir si la vérification est terminée
   const { handleLogout } = useContext(SessionContext); // Importe handleLogout depuis le contexte
   const [profileImage, setProfileImage] = useState(require('../assets/images-user.png')); // Image par défaut
   const [updateUser] = useMutation(USER_UPDATE_PICTURE); // Mutation GraphQL
-
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -48,6 +47,43 @@ const HomeScreen = () => {
     };
     fetchUserName();
   }, []);
+
+  const getUserIdFromToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        const decodedToken = jwtDecode(token);
+        return decodedToken.user_id; // Assurez-vous que 'user_id' correspond bien à votre token
+      }
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+   // Récupérer l'ID utilisateur au chargement
+   useEffect(() => {
+    const fetchUserId = async () => {
+      const id = await getUserIdFromToken();
+      if (id) {
+        setUserId(id);
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  // Requête pour récupérer les données utilisateur
+  const { data: userData, loading: userLoading, error: userError } = useQuery(GET_USER, {
+    variables: { id: userId },
+    skip: !userId, // Ne pas exécuter la requête tant que l'ID utilisateur n'est pas disponible
+  });
+
+  useEffect(() => {
+    if (userData?.userById?.image) {
+      setProfileImage({ uri: userData.userById.image }); // Met à jour l'image si elle existe
+    }
+  }, [userData]);
+
 
   //-----------------------------------------------------------------------------------
 
@@ -100,7 +136,7 @@ const HomeScreen = () => {
         const cloudinaryUrl = await uploadImageToCloudinary(uri);
         console.log('Image uploadée sur Cloudinary:', cloudinaryUrl);
         // Mise à jour de l'utilisateur via GraphQL
-        const userId = await AsyncStorage.getItem('userId'); // ID de l'utilisateur
+        const userId = await getUserIdFromToken(); // ID de l'utilisateur
         if (userId) {
           await updateUser({
             variables: {
@@ -145,24 +181,22 @@ const HomeScreen = () => {
     fetchUserEmail();
   }, []);
 
-  // const handleLogout = async () => {
-  //   // Supprimer le token et le firstName lors de la déconnexion
-  //   await AsyncStorage.removeItem('token');
-  //   await AsyncStorage.removeItem('userEmail');
-  //   navigation.replace('Login');
-  // };
-
 
   const handleNewConsultation=()=>{
      navigation.navigate("NewPatient");
   }
-
   if (loading) {
     return <SafeAreaView><Text>Loading...</Text></SafeAreaView>; // Ou votre propre composant de chargement
   }
-  
   if (error) {
     return <SafeAreaView><Text>Error: {error.message}</Text></SafeAreaView>;
+  }
+  if (userLoading) {
+    return <Text>Loading user data...</Text>;
+  }
+  if (userError) {
+    console.error('Error fetching user data:', userError);
+    return <Text>Error loading user data</Text>;
   }
 
 
@@ -210,15 +244,13 @@ const HomeScreen = () => {
          <View style={styles.middleRow}>
     
           <View style={styles.centerRow}>
-          <Ionicons name="menu" size={30} color="white" style={styles.menuIcon} />
+          {/* <Ionicons name="menu" size={30} color="white" style={styles.menuIcon} /> */}
             <Text style={styles.email}>  Hello,{"\n"}{userName}</Text>
           </View>
         </View>
 
-
         {/* Barre de recherche */}
         
-
         {/* Texte de bienvenue */}
         <Text style={styles.welcomeText}>Welcome back!</Text>
       </View>
@@ -226,7 +258,6 @@ const HomeScreen = () => {
   
 
       <Text style={styles.title}> create new folder</Text>
-
 
         <View style={styles.buttonContainer}>
         <TouchableOpacity style= {styles.button} onPress={handleNewConsultation}>
@@ -346,10 +377,13 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   profileImage: {
-    width: 45,
-    height: 45,
+    width: 47,
+    height: 47,
     borderRadius: 25,
     marginLeft: 125,
+    borderWidth: 1,
+    borderColor: '#ccc', // Optionnel : ajout d'une bordure
+    backgroundColor: '#f0f0f0', // Couleur de fond par défaut si l'image ne charge pas
   },
   searchContainer: {
     flexDirection: 'row',

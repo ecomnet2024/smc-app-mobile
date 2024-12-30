@@ -145,14 +145,21 @@ useEffect(() => {
 
   // Vérifiez si l'utilisateur connecté a envoyé le message
   const isCurrentUser = item.user?._id === currentUserId;
+  console.log('User Data:', item.user);
+
   console.log("Feedback User ID:", item.user?._id, "isCurrentUser:", isCurrentUser);
+  const userImageUri = item.user?.image
+    ? item.user.image
+    : 'https://via.placeholder.com/50'; // Image par défaut si aucune n'est définie
+
 
   return (
     <View style={[styles.feedbackCard, isCurrentUser && styles.currentUserFeedbackCard]}>
       <View style={styles.feedbackHeader}>
         <Image
-          source={{ uri: 'https://via.placeholder.com/50' }} // Remplacez par l'URL réelle
+          source={{ uri: userImageUri }} // Remplacez par l'URL réelle
           style={styles.userImage}
+          onError={(error) => console.error('Image Load Error:', error.nativeEvent.error)}
         />
         <Text style={[styles.userName, isCurrentUser && styles.currentUserFeedbackText]}>
           {item.user?.first_name || 'Anonymous'}
@@ -232,6 +239,9 @@ userImage: {
   height: 50,
   borderRadius: 25,
   marginRight: 10,
+  borderWidth: 1,
+  borderColor: '#ccc', // Optionnel : ajout d'une bordure
+  backgroundColor: '#f0f0f0', // Couleur de fond par défaut si l'image ne charge pas
 },
 userName: {
   fontSize: 16,
