@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View, Button } from 'react-native'
-import React,  { useEffect, useContext }  from 'react'
+import React,  { useEffect, useContext, useRef }  from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput, ScrollView } from 'react-native-gesture-handler'
 import { Image } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useState } from 'react'
-import { Ionicons } from '@expo/vector-icons';
+import { Animated } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Entypo from '@expo/vector-icons/Entypo';
@@ -30,6 +31,9 @@ const HomeScreen = () => {
   const [profileImage, setProfileImage] = useState(require('../assets/images-user.png')); // Image par défaut
   const [updateUser] = useMutation(USER_UPDATE_PICTURE); // Mutation GraphQL
   const [userId, setUserId] = useState(null);
+  const [showScrollToTop, setShowScrollToTop] = useState(false); // État pour afficher le bouton
+  const scrollViewRef = useRef(null); // Référence à la ScrollView
+
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -109,7 +113,6 @@ const HomeScreen = () => {
   //------------------------------------------------------------------------------------
 
 
-
   // Gérer l'image de profil
   const handleProfileImagePress = async () => {
     const options = [
@@ -181,10 +184,23 @@ const HomeScreen = () => {
     fetchUserEmail();
   }, []);
 
+ // Gestion de l'affichage du bouton lors du défilement
+ const handleScroll = (event) => {
+  const currentOffset = event.nativeEvent.contentOffset.y;
+  setShowScrollToTop(currentOffset > 100); // Affiche le bouton si on a défilé de plus de 100px
+};
+// Fonction pour revenir en haut
+const scrollToTop = () => {
+  scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+};
+
 
   const handleNewConsultation=()=>{
      navigation.navigate("NewPatient");
   }
+  const handleEmergency=()=>{
+    navigation.navigate("Emergency");
+ }
   if (loading) {
     return <SafeAreaView><Text>Loading...</Text></SafeAreaView>; // Ou votre propre composant de chargement
   }
@@ -203,7 +219,10 @@ const HomeScreen = () => {
   return (
     <GestureHandlerRootView>
     <SafeAreaView style={styles.container}>
-    <ScrollView>
+    <ScrollView
+     ref={scrollViewRef}
+     onScroll={handleScroll}
+     scrollEventThrottle={16} >
 
       <View>
 
@@ -265,8 +284,8 @@ const HomeScreen = () => {
           <Text style={styles.buttonText2}>New consultation</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style= {styles.button}>
-        <Image source={require('../assets/pregnant woman_6226304.png')} style={styles.logo2} />
+        <TouchableOpacity style= {styles.button} onPress={handleEmergency}>
+        <Image source={require('../assets/emergency.png')} style={styles.logo2} />
           <Text style={styles.buttonText2}>Emergency</Text>
         </TouchableOpacity>
        </View>
@@ -278,6 +297,16 @@ const HomeScreen = () => {
        <Testconsult />
 
        </ScrollView>
+
+       {/* Bouton pour remonter en haut */}
+       {showScrollToTop && (
+          <TouchableOpacity
+            style={styles.scrollToTopButton}
+            onPress={scrollToTop}
+          >
+            <AntDesign name="arrowup" size={24} color="white" />
+          </TouchableOpacity>
+        )}
 
     </SafeAreaView>
     </GestureHandlerRootView>
@@ -293,6 +322,19 @@ const styles = StyleSheet.create({
    // flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  scrollToTopButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#3C58C1',
+    borderRadius: 50,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
   },
   container: {
     flex: 1,
@@ -352,13 +394,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   logo2: {
-    width: 118,
-    height: 118,
+    width: 100,
+    height: 105,
     resizeMode: 'contain',
   },
   logo3: {
-    width: 138,
-    height: 138,
+    width: 140,
+    height: 140,
     resizeMode: 'contain',
   },
   centerRow: {

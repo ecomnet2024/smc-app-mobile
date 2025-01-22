@@ -1,12 +1,11 @@
-import { StyleSheet, Text, View , ScrollView, Pressable, Platform, Alert} from 'react-native'
+import { StyleSheet, Text, View , ScrollView, Alert} from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Image } from 'react-native'
-import { SelectList } from 'react-native-dropdown-select-list';
 import { useMutation } from '@apollo/client';
 import { CREATE_CONSULTATION} from '../../src/Screens/graphql/Mutation';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -58,6 +57,7 @@ const NewConsultationScreen = () => {
     complain: '',
     pulse: '',
     blood_pressure: '',
+    medical_history: '',
     surgical_history: '',
     photo_material: [], // Stockage de l'URI de la photo
     createdAt: new Date(),
@@ -152,14 +152,8 @@ const uploadImageToCloudinary = async (fileUri) => {
       throw error;
     } 
 };
-
- // Options pour le champ Status
- const statusOptions = [
-  { key: 'New', value: 'New' },
-  { key: 'In_Review', value: 'In_Review' },
-  { key: 'Closed', value: 'Closed' },
-];
  
+
   const handleSubmit = async () => {
      // Logs pour vérifier les données du formulaire
      console.log('Submitting Consultation Data:', consultationData);
@@ -189,7 +183,6 @@ const uploadImageToCloudinary = async (fileUri) => {
 
     const medical_staff_Id = await getDoctorIdFromToken();
     const patientID = patientId || patient?._id;
-
 
     if (!medical_staff_Id || !patientID) {
       Alert.alert('Error', 'Missing doctor or patient information.');
@@ -224,6 +217,7 @@ const uploadImageToCloudinary = async (fileUri) => {
       temperature,
       complain: consultationData.complain,
       pulse,
+      medical_history:consultationData.medical_history,
       surgical_history:consultationData.surgical_history,
       blood_pressure: consultationData.blood_pressure,
       status: consultationData.status,
@@ -242,6 +236,7 @@ const uploadImageToCloudinary = async (fileUri) => {
             complain: consultationData.complain,
             pulse: parseFloat(consultationData.pulse),
             blood_pressure: consultationData.blood_pressure,
+            medical_history:consultationData.medical_history,
             surgical_history: consultationData.surgical_history,
             status: consultationData.status,
             createdAt: consultationData.createdAt,
@@ -251,11 +246,18 @@ const uploadImageToCloudinary = async (fileUri) => {
       });
 
       console.log('Consultation Created:', result.data);
+      const createdConsultation = result.data?.consultationCreateOne?.record;
+      console.log('Consultation Created:', createdConsultation);
+
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
       Alert.alert('Success', 'Consultation created successfully!');
 
       // Naviguer vers la page de détails
-      navigation.navigate('Details', { consultation: result.data.consultationCreateOne.record });
+      navigation.navigate('ConsultationTabs',
+       { consultation: result.data.consultationCreateOne.record,  patient: patient, 
+        patientData: result.data.consultationCreateOne.record.patient, 
+        patientId: result.data.consultationCreateOne.record.patient  });
+
     } catch (error) {
       console.error("GraphQL Error:", error.networkError || error.graphQLErrors || error);
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
@@ -276,7 +278,7 @@ const uploadImageToCloudinary = async (fileUri) => {
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={35} color="gray" />
+        <Ionicons name="chevron-back-circle" size={38} color="gray" />
       </TouchableOpacity>
 
     </View>
@@ -291,9 +293,9 @@ const uploadImageToCloudinary = async (fileUri) => {
      <View style={styles.patientInfo}>
         {patientData ? (
           <>
-            <Text>Nom: {name}</Text>
-            <Text>Âge: {age}</Text>
-            <Text>Genre: {gender}</Text>
+            <Text>Name: {name}</Text>
+            <Text>Age: {age}</Text>
+            <Text>Gender: {gender}</Text>
           </>
         ) : (
           <Text>cannot show patient information here.</Text>
@@ -306,47 +308,63 @@ const uploadImageToCloudinary = async (fileUri) => {
          {/* Consultation Section */}
       <View style={styles.section}>
         <Text style={styles.heading}>Consultation</Text>
+        <Text style={styles.legend}>
+             <Text style={styles.required}>*</Text> Indicate an obligatory field.
+        </Text>
 
-        <Text style={styles.label}>Complaint</Text>
+        <Text style={styles.label}>Complaint
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.textArea}
           value={consultationData.complain}
           multiline
-          numberOfLines={4}
+          numberOfLines={3}
           onChangeText={(value) => setConsultationData({ ...consultationData, complain: value })}
         />
 
-        <Text style={styles.label}>Pulse</Text>
+        <Text style={styles.label}>Pulse
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
+          placeholder="/min"
           value={consultationData.pulse}
           onChangeText={(value) => setConsultationData({ ...consultationData, pulse: parseFloat(value) })}
         />
 
-        <Text style={styles.label}>Temperature</Text>
+        <Text style={styles.label}>Temperature
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
+          placeholder="°C"
           value={consultationData.temperature}
           onChangeText={(value) => setConsultationData({ ...consultationData, temperature: parseFloat(value) })}
         />
 
-        <Text style={styles.label}>Blood Pressure</Text>
+        <Text style={styles.label}>Blood Pressure
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           keyboardType="numbers-and-punctuation"
           value={consultationData.blood_pressure}
           onChangeText={(text) => setConsultationData({ ...consultationData, blood_pressure: text })}
-          placeholder="Enter blood pressure"
+          placeholder="SYS/DIA"
         />
 
-        <Text style={styles.label}>surgical_history</Text>
+        <Text style={styles.label}>Medical History</Text>
         <TextInput
           style={styles.textArea}
-          value={consultationData.surgical_history}
+          value={consultationData.medical_history}
           multiline
-          numberOfLines={4}
+          numberOfLines={2}
+          onChangeText={(value) => setConsultationData({ ...consultationData, medical_history: value })}
+        />
+
+        <Text style={styles.label}>Surgical History</Text>
+        <TextInput
+          style={styles.input}
+          value={consultationData.surgical_history}
           onChangeText={(value) => setConsultationData({ ...consultationData, surgical_history: value })}
         />
 
@@ -365,18 +383,6 @@ const uploadImageToCloudinary = async (fileUri) => {
           </View>
 
           {loading && <ActivityIndicator size="large" color="#0000ff" />}
-
-        <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
-          <Text>Date of creation: {consultationData.createdAt.toLocaleDateString()}</Text>
-        </TouchableOpacity>
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={consultationData.createdAt}
-            mode="date"
-            display="default"
-            onChange={onStartDateChange}
-          />
-        )}
 
       </View>
 
@@ -398,22 +404,31 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
         justifyContent: 'center',
-        paddingHorizontal: 14,
+        paddingHorizontal: 12,
         backgroundColor: '#fff',
       },
   container:{
     flex: 1,
-    marginTop: 12,
+    marginTop: 8,
     marginHorizontal: 10,
   },
   image: {
-    width: '70%',
-    height: 130, // Taille de l'image en haut
+    width: '67%',
+    height: 124, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
     alignSelf: 'center'
   },
+  legend: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 10,
+  },
+  required: {
+    color: 'red',
+    fontWeight: 'bold',
+  },
   formContainer: {
-    backgroundColor: '#fff', // Fond du formulaire
+    backgroundColor: '#fff',
     padding: 20,
     marginTop: -20, // Permet au bloc de monter légèrement au-dessus de l'image
     borderTopLeftRadius: 20,
@@ -486,7 +501,7 @@ const styles = StyleSheet.create({
     marginVertical:8,
   },
   textArea: {
-    height: 80,
+    height: 70,
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
@@ -508,9 +523,9 @@ const styles = StyleSheet.create({
   patientInfo: {
     width: '100%',
     backgroundColor: '#f9f9f9',
-    padding: 15,
+    padding: 14,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 18,
   },
   patientInfoText: {
     fontSize: 16,
@@ -526,21 +541,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
   },
-  dateButton: {
-    padding: 15,
-    backgroundColor: '#ddd',
-    marginBottom: 10,
-    borderRadius: 5,
-  },
   photoButton: {
     backgroundColor: '#ddd',
-    padding: 12,
-    borderRadius: 13,
+    padding: 6,
+    borderRadius: 12,
     marginBottom: 10,
     alignItems: 'center',
   },
-  photoButtonText: { color: '#000000', fontSize: 16 },
-  imagePreview: { width: '100%', height: 200, marginBottom: 20 },
+  photoButtonText: { color: '#000000', fontSize: 15 },
+  imagePreview: { width: '100%', height: 190, marginBottom: 20 },
   noPhotoText: { color: '#999', marginBottom: 20, fontStyle: 'italic' },
  
 })

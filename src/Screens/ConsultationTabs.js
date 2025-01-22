@@ -9,6 +9,8 @@ import AllergyScreen from '../../src/Screens/AllDetails/AllergyScreen';
 import MedicationScreen from '../../src/Screens/AllDetails/MedicationScreen';
 import FeedbackScreen from '../../src/Screens/AllDetails/FeedbackScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import LabResultScreen from './AllDetails/LabresultScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -26,36 +28,72 @@ const MainDetails = ({ route }) => {
 
        <TouchableOpacity 
         style={styles.backButton}
-        onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={38} color="gray" />
+        onPress={() => navigation.navigate("Home")} >
+        <Ionicons name="home" size={35} color="black" />
       </TouchableOpacity>
 
-      <Text style={styles.title}>Consultation Details</Text>
-      <Text style={{ fontSize: 17 }}>Age : <Text style={styles.value}> {consultation.patient.age}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Gender : <Text style={styles.value}> {consultation.patient.gender}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Complain : <Text style={styles.value}> {consultation.complain}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Blood Pressure :<Text style={styles.value}> {consultation.blood_pressure}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Pulse :<Text style={styles.value}> {consultation.pulse}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Temperature :<Text style={styles.value}> {consultation.temperature}</Text></Text>
 
-      <Text style={{ fontSize: 17 }}>Surgical history :<Text style={styles.value}> {consultation.surgical_history}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Created at : <Text style={styles.value}>  {new Date(consultation.createdAt).toISOString().split("T")[0]}</Text></Text>
-      <Text style={{ fontSize: 17 }}>Status : <Text style={styles.value}> {consultation.status}</Text></Text>
+        {/* Carte pour afficher les détails */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>Patient Information</Text>
+          <View style={styles.row}>
+            <Text style={styles.label}>Age:</Text>
+            <Text style={styles.value}>{consultation.patient.age}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Gender:</Text>
+            <Text style={styles.value}>{consultation.patient.gender}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Complain:</Text>
+            <Text style={styles.value}>{consultation.complain}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Blood Pressure:</Text>
+            <Text style={styles.value}>{consultation.blood_pressure}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Pulse:</Text>
+            <Text style={styles.value}>{consultation.pulse}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Temperature:</Text>
+            <Text style={styles.value}>{consultation.temperature}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Medical History:</Text>
+            <Text style={styles.value}>{consultation.medical_history}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Surgical History:</Text>
+            <Text style={styles.value}>{consultation.surgical_history}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Created At:</Text>
+            <Text style={styles.value}>{new Date(consultation.createdAt).toISOString().split('T')[0]}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label}>Status:</Text>
+            <Text style={styles.value}>{consultation.status}</Text>
+          </View>
+        </View>
 
-      <ScrollView>
-  {consultation.photo_material && consultation.photo_material.length > 0 ? (
-    consultation.photo_material.map((uri, index) => (
-      <Image 
-        key={index} 
-        source={{ uri }} 
-        style={styles.imagePreview} 
-        onError={(e) => console.log(`Error loading image: ${uri}`, e.nativeEvent.error)} // Pour déboguer
-      />
-    ))
-  ) : (
-    <Text style={styles.noPhotoText}>No photos available</Text>
-  )}
-      </ScrollView>
+        {/* Galerie d'images */}
+        <Text style={styles.galleryHeader}>    Photos</Text>
+        <ScrollView horizontal contentContainerStyle={styles.imageGallery}>
+          {consultation.photo_material && consultation.photo_material.length > 0 ? (
+            consultation.photo_material.map((uri, index) => (
+              <Image 
+                key={index} 
+                source={{ uri }} 
+                style={styles.imagePreview} 
+                onError={(e) => console.log(`Error loading image: ${uri}`, e.nativeEvent.error)} 
+              />
+            ))
+          ) : (
+            <Text style={styles.noPhotoText}>No photos available</Text>
+          )}
+        </ScrollView>
 
 </SafeAreaView>
     </GestureHandlerRootView>
@@ -80,12 +118,12 @@ const ConsultationTabs = ({ route }) => {
       }}
     />
     <Tab.Screen
-      name="Vaccinations"
-      component={VaccinationScreen}
+      name="Lab Result"
+      component={LabResultScreen}
       initialParams={{ consultation }}
       options={{
         tabBarIcon: ({ color, size }) => (
-          <Ionicons name="medical" size={size} color={color} />
+          <FontAwesome5 name="clipboard-list" size={size} color={color} />
         ),
       }}
     />
@@ -100,6 +138,17 @@ const ConsultationTabs = ({ route }) => {
       }}
     />
     <Tab.Screen
+      name="Vaccinations"
+      component={VaccinationScreen}
+      initialParams={{ consultation }}
+      options={{
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="medical" size={size} color={color} />
+        ),
+      }}
+    />
+    
+    <Tab.Screen
       name="Allergies"
       component={AllergyScreen}
       initialParams={{ consultation }}
@@ -109,16 +158,7 @@ const ConsultationTabs = ({ route }) => {
         ),
       }}
     />
-    <Tab.Screen
-      name="Medications"
-      component={MedicationScreen}
-      initialParams={{ consultation }}
-      options={{
-        tabBarIcon: ({ color, size }) => (
-          <Ionicons name="flask" size={size} color={color} />
-        ),
-      }}
-    />
+    
     <Tab.Screen
       name="Feedbacks"
       component={FeedbackScreen}
@@ -138,37 +178,73 @@ export default ConsultationTabs;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-evenly',
     padding:15,
+    marginTop: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  backButton: {
+    marginBottom: 10,
     marginTop: 12,
   },
-  title: {
-    fontSize: 20,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 13,
-    marginTop:6,
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#333',
   },
-  image: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#ccc',
-    resizeMode: 'cover',
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 4,
+    marginBottom: 20,
   },
-  description: {
-    fontSize: 18,
+  cardHeader: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#555',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 10,
   },
+  label: {
+    fontSize: 15,
+    color: '#555',
+  },
   value: {
-    fontWeight: 'normal',
-    fontSize: 18,
+    fontSize: 15,
     color: '#3C58C1',
-},
-  imagePreview: { width: '200', height: 200, marginBottom: 15 ,
-  borderWidth: 1, // Bordure pour voir si l'image est rendue
-  borderColor: 'pink',
-  alignSelf:'center', marginTop:18,
-},
-  noPhotoText: { color: '#999', marginBottom: 20, fontStyle: 'italic' },
+    fontWeight: 'bold',
+  },
+  galleryHeader: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  imageGallery: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  imagePreview: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  noPhotoText: {
+    color: '#999',
+    fontStyle: 'italic',
+    fontSize: 14,
+  },
 });

@@ -11,22 +11,36 @@ mutation Mutation($email: String!, $password: String!) {
 }
   `
 export const CREATE_USERS = gql`
-mutation Mutation($record: CreateOneUserInput!) {
-    userCreateOne(record: $record) {
-      error {
-        ... on ValidationError {
-          errors {
-            message
-          }
-          message
-        }
-      }
-      record {
-        email
-        password
+mutation UserCreateOneMob($record: CreateOneUserInput!) {
+  userCreateOneMob(record: $record) {
+    record {
+      _id
+      address
+      country
+      email
+      first_name
+      gender
+      last_name
+      password
+      phone
+      role {
+        _id
+        name
+        description
       }
     }
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+      ... on MongoError {
+        message
+      }
+    }
+    recordId
   }
+}
 `
 export const CREATE_CONSULTATION = gql`
 mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
@@ -42,6 +56,7 @@ mutation consultationCreateOne ($record: CreateOneConsultationInput!) {
       temperature
       blood_pressure
       complain
+      medical_history
       surgical_history
       pulse
       status
@@ -122,6 +137,16 @@ mutation PrescriptionRemoveById($id: MongoID!) {
     }
   }
 }`
+export const REMOVE_LAB_RESULT = gql`
+mutation LabResultRemoveById($id: MongoID!) {
+  labResultRemoveById(_id: $id) {
+    recordId
+    error {
+      message
+    }
+  }
+}`
+
 //-------------------------------------------------------------------------------------------------------------------
 export const CREATE_VACCINATION = gql`
 mutation VaccinationCreateOne($record: CreateOneVaccinationInput!) {
@@ -237,6 +262,7 @@ mutation PrescriptionCreateOne($record: CreateOnePrescriptionInput!) {
       consultation
       contraindications
       medication
+      dosage
       start_date
       end_date
       patient
@@ -252,3 +278,62 @@ mutation PrescriptionCreateOne($record: CreateOnePrescriptionInput!) {
     }
   }
 }`
+
+export const CREATE_LAB_RESULT = gql`
+mutation LabResultCreateOne($record: CreateOneLabResultInput!) {
+  labResultCreateOne(record: $record) {
+    record {
+      _id
+      consultation
+      createdBy
+      date
+      medical_staff
+      patient
+      result
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`
+export const CREATE_EMERGENCY = gql`
+mutation EmergencyCreateOne($record: CreateOneEmergencyInput!) {
+  emergencyCreateOne(record: $record) {
+    record {
+      _id
+      name
+      complain
+      createdAt
+      createdBy {
+        _id
+      }
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`
+export const UPDATE_STATUS_PATIENT = gql`
+mutation PatientUpdateById($id: MongoID!, $record: UpdateByIdPatientInput!) {
+  patientUpdateById(_id: $id, record: $record) {
+    record {
+      status
+    }
+    recordId
+    error {
+      message
+      ... on ValidationError {
+        message
+      }
+    }
+  }
+}`
+;

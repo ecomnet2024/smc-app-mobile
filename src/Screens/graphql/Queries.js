@@ -11,6 +11,15 @@ query Query {
     }
   }
 `
+export const GET_ROLES = gql`
+query RoleMany {
+  roleMany {
+    _id
+    name
+    description
+  }
+}`
+
 export const GET_CONSULTATION = gql`
 query consultationMany {
   consultationMany {
@@ -53,6 +62,7 @@ query consultationMany ($limit: Int!){
     medications
     temperature
       blood_pressure
+      medical_history
       surgical_history
       pulse
       status
@@ -70,6 +80,7 @@ query GET_CONSULTATIONS_BY_PATIENT($patientId: MongoID!) {
     medications
     temperature
     blood_pressure
+    medical_history
     surgical_history
     pulse
     status
@@ -117,6 +128,14 @@ query VaccinationMany($filter: FilterFindManyVaccinationInput) {
     date
     vaccine
     createdAt
+  }
+}`
+
+export const GET_LAB_RESULT = gql`
+query LabResultMany($filter: FilterFindManyLabResultInput) {
+  labResultMany(filter: $filter) {
+    date
+    result
   }
 }`
 
@@ -177,17 +196,27 @@ query PrescriptionMany($filter: FilterFindManyPrescriptionInput) {
     dosage
     start_date
     end_date
-    medicationDetails {
-      name
-      description
-      dosage
-    }
+    medication
+    dosage
+    
   }
 }`
 export const GET_USER = gql`
 query UserById($id: MongoID!) {
   userById(_id: $id) {
     image
+  }
+}`
+export const GET_EMERGENCY = gql`
+query EmergencyMany($filter: FilterFindManyEmergencyInput) {
+  emergencyMany(filter: $filter) {
+    _id
+    complain
+    createdAt
+    createdBy {
+      _id
+    }
+    name
   }
 }`
 ;

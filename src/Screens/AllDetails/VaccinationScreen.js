@@ -9,6 +9,7 @@ import { GET_VACCINATION } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
 
 const VaccinationScreen = ({ route }) => {
 
@@ -117,7 +118,7 @@ const VaccinationScreen = ({ route }) => {
           renderItem={({ item }) => (
             <View style={styles.vaccinationItem}>
               <Text style={styles.vaccinationText}>Vaccine: {item.vaccine}</Text>
-              <Text style={styles.vaccinationText}>Date: {item.date}</Text>
+              <Text style={styles.vaccinationText}>Date: {new Date(item.date).toISOString().split("T")[0]}</Text>
             </View>
           )}
         />

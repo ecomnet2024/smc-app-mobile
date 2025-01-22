@@ -10,6 +10,7 @@ import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
 
 const MedicationScreen = ({ route }) => {
@@ -42,6 +43,8 @@ const MedicationScreen = ({ route }) => {
     }
   };
 
+  const navigation = useNavigation();
+
   // States
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
 const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -54,6 +57,9 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
     end_date: '',
   });
   
+  const handlepress = () => {
+    navigation.navigate('Labresult'); // Remplace "TargetPage" par le nom de la page cible
+  };
   
   // Apollo Queries and Mutations
   // Requête Apollo avec filtre

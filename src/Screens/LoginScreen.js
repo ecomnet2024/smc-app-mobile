@@ -60,20 +60,18 @@ const LoginScreen = () => {
                console.log('User email:', email);
                 console.log('User token:', token);
               
-
                 if (email && token ) {
                   try {
                     await AsyncStorage.setItem('userEmail', email);
                     await AsyncStorage.setItem('userToken', token);
                     console.log('Email, token was saved successfully');
-                    navigation.replace('HomeTabs');
+                    navigation.replace('Home');
                   } catch (e) {
                     console.log('Error saving data:', e);
                   }
                 } else {
                   console.log('Email or token is missing');
                 }
-
 
               } else {
                 Alert.alert('Login failed','Bad email or password, try again' );
@@ -169,7 +167,7 @@ const LoginScreen = () => {
       </View>
 
      <TouchableOpacity>
-      <Text style={styles.forgetPass} onPress={handleForgot}> Forgot your password?</Text>
+      <Text style={styles.forgetPass} onPress={handleForgot}> Forget password?</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.signInButton} onPress={handleHome}>
@@ -218,7 +216,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 15,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
     flexDirection:"row",
     alignItems:"center",
   },

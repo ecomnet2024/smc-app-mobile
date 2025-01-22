@@ -22,6 +22,8 @@ import { ApolloClient, ApolloProvider, InMemoryCache, HttpLink } from "@apollo/c
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SessionProvider } from './Components/SessionProvider';
+import EmergencyScreen from './src/Screens/EmergencyScreen';
+import LabResultScreen from './src/Screens/AllDetails/LabresultScreen';
 
 
 
@@ -47,15 +49,15 @@ function HomeTabNavigator() {
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#007aff',
+        tabBarActiveTintColor: '#000000',
         tabBarInactiveTintColor: '#8e8e93',
         tabBarStyle: { backgroundColor: '#fff', paddingBottom: 5 },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Phone" component={PhoneScreen} options={{ headerShown: false }} />
+      {/* <Tab.Screen name="Phone" component={PhoneScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Notification" component={NotificationScreen} options={{ headerShown: false }} />
-      <Tab.Screen name="Setting" component={SettingScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Setting" component={SettingScreen} options={{ headerShown: false }} /> */}
     </Tab.Navigator>
   );
 }
@@ -123,6 +125,8 @@ function AuthStack() {
       <Stack.Screen name="NewPatient" options={{ headerShown: false }} component={NewPatientScreen} />
       <Stack.Screen name="Details" options={{ headerShown: false }} component={ConsultationDetails} />
       <Stack.Screen name="ConsultationTabs" options={{ headerShown: false }} component={ConsultationTabs} />
+      <Stack.Screen name="Emergency" options={{ headerShown: false }} component={EmergencyScreen} />
+      <Stack.Screen name="Labsresult" options={{ headerShown: false }} component={LabResultScreen} />
 
     </Stack.Navigator>
   );

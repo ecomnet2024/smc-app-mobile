@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Button } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Button, Alert } from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_PATIENT } from '../../src/Screens/graphql/Mutation';
 import { GET_CLINIC ,GET_PATIENT } from '../../src/Screens/graphql/Queries';
+import { UPDATE_STATUS_PATIENT } from '../../src/Screens/graphql/Mutation';
 import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { setLogVerbosity } from '@apollo/client';
 
 
 const CreatePatientForm = () => {
@@ -17,6 +19,8 @@ const CreatePatientForm = () => {
 
   const { data: clinicData, loading: clinicLoading, error: clinicError } = useQuery(GET_CLINIC);
   const { data: patientDataResponse, loading: patientLoading, error: patientError } = useQuery(GET_PATIENT);
+
+  const [updatePatientStatus] = useMutation(UPDATE_STATUS_PATIENT);
 
   const [selectedPatientId, setSelectedPatientId] = useState(null); // Stocke l'ID du patient sélectionné
   // Stocke l'ID du patient sélectionné
@@ -29,7 +33,7 @@ const CreatePatientForm = () => {
     email: '',
     clinic:'',
     phone: '',
-    status: ''
+    status: 'New'
   });
   const [patientCreateOne, {data}] = useMutation(CREATE_PATIENT);
 
@@ -53,16 +57,10 @@ const patientOptions =
     { key: 'F', value: 'F' },
   ];
 
-  // Options pour le champ Status
-  const statusOptions = [
-    { key: 'New', value: 'New' },
-    { key: 'Returning', value: 'Returning' },
-  ];
   
   
-  const handleSelectSubmit = () => {
+  const handleSelectSubmit = async () => {
 
-    
     if (!selectedPatientId) {
       Alert.alert('Error', 'Please select a patient');
       return;
@@ -75,9 +73,34 @@ const patientOptions =
       Alert.alert('Error', 'Patient not found');
       return;
     }
-    // Naviguer vers ConsultationScreen avec l'objet patient
-    navigation.navigate('NewConsultation', { patient: selectedPatient });
+
+    try {
+      // Mettre à jour le statut du patient sélectionné
+      const result = await updatePatientStatus({
+        variables: {
+          id: selectedPatientId,
+          record: { status: 'Returning' },
+        },
+      });
+      console.log('Mutation result:', result);
+  
+      if (result.data?.patientUpdateById?.record) {
+        console.log('Patient status updated successfully:', result.data.patientUpdateById.record.status);
+        //Alert.alert('Success', 'Patient status updated to Returning');   // Alert to verify the update of status
+      } else {
+        console.error('Error updating patient status:', result);
+        Alert.alert('Error', 'Failed to update patient status');
+      }
+  
+      // Naviguer vers la page ConsultationScreen avec l'objet patient
+      navigation.navigate('NewConsultation', { patient: selectedPatient });
+    } catch (error) {
+      console.error('Error updating patient status:', error.message, error);
+      Alert.alert('Error', 'An error occurred while updating the patient status');
+    }
   };
+
+
 
   const sn=" ";
   const clinicId = patientData?.clinic?._id;
@@ -88,10 +111,7 @@ const patientOptions =
       !patientData.name ||
       !patientData.age ||
       !patientData.gender ||
-      !patientData.status ||
-      !patientData.phone ||
-      !patientData.clinic ||
-      !patientData.email 
+      !patientData.clinic
     ) {
       // Gestion des erreurs si un champ est vide
       alert('Please fill in all required fields');
@@ -155,6 +175,8 @@ const patientOptions =
     return <Text>Failed to load data. Please try again later.</Text>;
   }
 
+  setLogVerbosity('debug');
+
 
   return (
     <GestureHandlerRootView>
@@ -199,15 +221,20 @@ const patientOptions =
          {/* Patient Section */}
       <View style={styles.section}>
         <Text style={styles.heading}>Patient information</Text>
+        <Text style={styles.legend}>
+             <Text style={styles.required}>*</Text> Indicate an obligatory field.
+        </Text>
 
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>Name
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           value={patientData.name}
           onChangeText={(value) => setPatientData({ ...patientData, name: value })}
         />
 
-        <Text style={styles.label}>Age</Text>
+        <Text style={styles.label}>Age
+        <Text style={styles.required}>*</Text></Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -215,7 +242,8 @@ const patientOptions =
           onChangeText={(value) => setPatientData({ ...patientData, age: parseFloat(value) })}
         />
 
-        <Text style={styles.label}>Gender</Text>
+        <Text style={styles.label}>Gender
+        <Text style={styles.required}>*</Text></Text>
         <SelectList
           setSelected={(val) => setPatientData({ ...patientData, gender: val })}
           data={genderOptions}
@@ -240,7 +268,8 @@ const patientOptions =
           keyboardType="phone-pad"
         />
 
-         <Text style={styles.label}>Clinic</Text>
+         <Text style={styles.label}>Clinic
+         <Text style={styles.required}>*</Text></Text>
        <SelectList
          setSelected={(val) => setPatientData({ ...patientData, clinic: val })}
          data={clinicOptions}
@@ -249,21 +278,11 @@ const patientOptions =
          dropdownStyles={styles.dropdownList}
        />
 
-        <Text style={styles.label}>Status</Text>
-        <SelectList
-          setSelected={(val) => setPatientData({ ...patientData, status: val })}
-          data={statusOptions}
-          placeholder="Select Status"
-          boxStyles={styles.dropdown}
-          dropdownStyles={styles.dropdownList}
-        />
-
         <TouchableOpacity style= {styles.signInButton} onPress={handleSubmit} >
           <Text style={styles.buttonText}>Submit</Text>
         </TouchableOpacity>
 
         </View>
-
 
     </View>
     </ScrollView>
@@ -278,12 +297,12 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
         justifyContent: 'center',
-        paddingHorizontal: 14,
+        paddingHorizontal: 13,
         backgroundColor: '#fff',
       },
   container:{
     flex: 1,
-    marginTop: 12,
+    marginTop: 9,
     marginHorizontal: 10,
   },
   image: {
@@ -292,6 +311,15 @@ const styles = StyleSheet.create({
     resizeMode: 'cover', // Adapter l'image
     alignSelf: 'center',
     marginTop:-8,
+  },
+  legend: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 10,
+  },
+  required: {
+    color: 'red',
+    fontWeight: 'bold',
   },
   formContainer: {
     backgroundColor: '#fff', // Fond du formulaire

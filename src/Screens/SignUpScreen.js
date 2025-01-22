@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -10,9 +10,12 @@ import { useNavigation } from '@react-navigation/native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_USERS } from '../../src/Screens/graphql/Mutation';
+import { GET_ROLES } from '../../src/Screens/graphql/Queries';
 import { Alert } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
+import { Picker } from '@react-native-picker/picker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const SignUpScreen = () => {
@@ -26,41 +29,84 @@ const SignUpScreen = () => {
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
   const [address, setAddress] = useState('');
+  const [gender, setGender] = useState('M'); // Default to 'M'
+  const [selectedRole, setSelectedRole] = useState(null);
+
   const [createUser, { loading, error, data }] = useMutation(CREATE_USERS);
+  const { data: rolesData, loading: rolesLoading, error: rolesError } = useQuery(GET_ROLES);
+  //const [createUser, { loading: createLoading, error: createError }] = useMutation(CREATE_USERS);
 
     const handleLogin = ()=>{
       navigation.navigate("Login");
       };
+    
+    const validateFields = () => {
+        if (!email || !password || !firstName || !lastName || !phone || !country || !address|| !selectedRole) {
+          Alert.alert('Validation Error', 'All fields are required.');
+          return false;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          Alert.alert('Validation Error', 'Invalid email format.');
+          return false;
+        }
+        if (password.length < 5) {
+          Alert.alert('Validation Error', 'Password must be at least 5 characters.');
+          return false;
+        }
+        if (!/^\+?[0-9]{7,15}$/.test(phone)) {
+          Alert.alert('Validation Error', 'Invalid phone number.');
+          return false;
+        }
+        return true;
+      };
 
-    const handleSignUp = () => {
-      createUser({
-          variables: {
-            record: {
-              email: email,
-              password: password,
-              first_name: firstName,   
-              last_name: lastName ,
-              phone:  phone,
-              country: country ,
-              address: address,
-            }
-          }
-        }).then((response) => {
-          if (response.data.userCreateOne.error) {
-            const validationError = response.data.userCreateOne.error.message;
-            console.error('Validation Error:', validationError); 
-            Alert.alert('Validation Error', validationError);
-          } else {
-            console.log('User email:', email); 
-            Alert.alert('Success', 'User created successfully!');
-            navigation.navigate('Home', { userEmail: email });
-          }
-        }).catch((err) => {
+      const handleSignUp = async () => {
+        if (!validateFields()) return;
+    
+        try {
+          const response = await createUser({
+            variables: {
+              record: {
+                email: email,
+                password: password,
+                first_name: firstName,
+                last_name: lastName,
+                phone: phone,
+                country: country,
+                address: address,
+                gender,
+                role: selectedRole,
+              },
+            },
+          });
+    
+          const result = response.data.userCreateOne;
+          // if (result.error) {
+          //   const validationError = result.error.message;
+          //   console.error('Validation Error:', validationError);
+          //   Alert.alert('Validation Error', validationError);
+          //   return;
+          // }
+
+          Alert.alert('Success', 'User created successfully! Now you can login');
+            navigation.navigate('Login');
+    
+        } catch (err) {
           console.error('Error:', err.message);
           Alert.alert('Error', err.message);
-        });
+        }
       };
+  
+
+
+      if (rolesLoading) {
+        return <ActivityIndicator size="large" color="#3C58C1" />;
+      }
     
+      if (rolesError) {
+        return <Text>Error fetching roles: {rolesError.message}</Text>;
+      }
+
 
 
   return (
@@ -72,7 +118,7 @@ const SignUpScreen = () => {
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={35} color="gray" />
+        <Ionicons name="chevron-back-circle" size={36} color="gray" />
       </TouchableOpacity>
 
      <TouchableOpacity style={styles.bannerButton}>
@@ -127,13 +173,44 @@ const SignUpScreen = () => {
          </View>
       </View>
 
+       {/* Gender */}
+       <View style={styles.formContainer}>
+              <Text style={styles.label}>Gender</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="male-female" size={24} color="black" />
+                <TextInput
+                  style={styles.TextInput}
+                  placeholder="M or F"
+                  value={gender}
+                  onChangeText={setGender}
+                />
+              </View>
+            </View>
+
+         {/* Role Selection */}
+         <View style={styles.formContainer}>
+              <Text style={styles.label}>Role</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedRole}
+                  onValueChange={(itemValue) => setSelectedRole(itemValue)}
+                >
+                  <Picker.Item label="Select Role" value={null} />
+                  {rolesData.roleMany.map((role) => (
+                    <Picker.Item key={role._id} label={role.name} value={role._id} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+
+
       <View style={styles.formContainer}>
       <Text style={styles.label}>Phone</Text>
          <View style={styles.inputContainer}>
          <Entypo name="phone" size={24} color="black" />
 
            <TextInput style={styles.TextInput} 
-          placeholder="Phone" value={phone} onChangeText={setPhone} />
+          placeholder="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
          </View>
       </View>
 
@@ -178,7 +255,8 @@ const SignUpScreen = () => {
        </View>
 
        <View style={styles.TextContainer}>
-       <Text style={styles.Text}> Do you already have an account? </Text>
+       <Text style={styles.Text}> I already have an account
+ </Text>
       <TouchableOpacity>
        <Text style={{color:"#3C58C1", fontSize: 16}} onPress={handleLogin}> Sign In </Text>
       </TouchableOpacity>
@@ -202,17 +280,22 @@ const styles = StyleSheet.create({
   },
   container:{
     flex: 1,
-    marginTop: 10,
+    marginTop: 6,
     marginHorizontal: 8,
   },
+  pickerContainer: {
+    borderWidth: 1,
+    borderRadius: 13,
+    paddingHorizontal: 10,
+  },
   formContainer:{
-    marginTop:30,
+    marginTop:27,
   },
   inputContainer:{
     borderWidth: 1,
-    borderRadius: 15,
+    borderRadius: 13,
     paddingHorizontal: 20,
-    paddingVertical: 9,
+    paddingVertical: 5,
     flexDirection:"row",
     alignItems:"center",
   },
@@ -222,17 +305,18 @@ const styles = StyleSheet.create({
     fontWeight:"light",
   },
   backButton: {
-    left: 5,
+    left: 4,
     zIndex: 2,
   },
   bannerButton: {
-    width: '100%',
+    width: '106%',
     height: 125,
-    marginBottom: 20, // Espace entre la bannière et le formulaire
+    marginBottom: 18, // Espace entre la bannière et le formulaire
     borderRadius: 25, 
     overflow: 'hidden', 
     backgroundColor:"#3C58C1",
     alignItems:'center',
+    alignSelf: 'center',
     marginTop:4,
     justifyContent:'center',
   },
@@ -249,18 +333,18 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   title: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight:"semibold",
     color:"#3C58C1",
   },
   signUpButton: {
     backgroundColor: "#3C58C1",
     paddingVertical: 11,
-    paddingHorizontal:15,
-    marginHorizontal: 10,
+    paddingHorizontal:10,
+    marginHorizontal: 16,
     borderRadius: 15,
     alignItems: 'center',
-    marginVertical:4,
+    marginVertical:9,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -311,6 +395,7 @@ const styles = StyleSheet.create({
     justifyContent:'center',
     alignItems:'center',
     marginVertical:8,
+    marginBottom:20,
   },
 
 })

@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
 import { CREATE_PRESCRIPTION, REMOVE_PRESCRIPTION } from '../../../src/Screens/graphql/Mutation';
-import { GET_PRESCRIPTION, GET_MEDICATION } from '../../../src/Screens/graphql/Queries';
+import { GET_PRESCRIPTION } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';
 
 const PrescriptionScreen = ({ route }) => {
 
@@ -17,6 +18,8 @@ const PrescriptionScreen = ({ route }) => {
   console.log('id de la consultation',consultation._id);
 
   const consultationID = consultation._id;
+
+  const navigation = useNavigation();
 
   const getDoctorIdFromToken = async () => {
     try {
@@ -40,11 +43,13 @@ const PrescriptionScreen = ({ route }) => {
 
   // States
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedMedication, setSelectedMedication] = useState(null);
   const [newPrescription, setNewPrescription] = useState({
     start_date: new Date(),
     end_date: new Date(),
     contraindications: '',
+    medication: '',
+    dosage: '',
+
   });
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -80,10 +85,6 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
     variables: { filter: { consultation: consultationID } },
   });
 
-  const { data: medicationData, loading: medicationLoading, error: medicationError } = useQuery(GET_MEDICATION, {
-    variables: { filter: { consultation: consultationID } },
-  });
-
   console.log('Data from GET_Prescrition:', data);
 
 
@@ -113,10 +114,6 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
       Alert.alert('Validation Error', 'no Id');
       return;
     }
-    if (!selectedMedication) {
-      Alert.alert('Validation Error', 'Please select a medication');
-      return;
-    }
     const medical_staff_Id = await getDoctorIdFromToken();
     const patientId = consultation.patient._id;
 
@@ -137,7 +134,6 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
             consultation: consultationID,
             patient: patientId,
             createdBy: medical_staff_Id,
-            medication: selectedMedication,
           },
         },
       });
@@ -146,18 +142,6 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
     }
   };
 
-  const renderMedicationOption = ({ item }) => (
-    <TouchableOpacity
-      style={[
-        styles.medicationOption,
-        selectedMedication === item._id && styles.selectedMedication,
-      ]}
-      onPress={() => setSelectedMedication(item._id)}
-    >
-      <Text style={styles.medicationName}>{item.name}</Text>
-      <Text style={styles.medicationDescription}>{item.description}</Text>
-    </TouchableOpacity>
-  );
 
   const handleDeletePrescription = (id) => {
     Alert.alert('Confirmation', 'Are you sure you want to delete this prescription?', [
@@ -169,23 +153,24 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const renderPrescriptionCard = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>Medication: {item.medicationDetails?.name || 'N/A'}</Text>
+        <Text style={styles.cardTitle}>Medication: {item.medication || 'N/A'}</Text>
         <TouchableOpacity onPress={() => handleDeletePrescription(item._id)}>
         <Icon name="trash-can" size={24} color="red" />
         </TouchableOpacity>
       </View>
       <Text style={styles.cardText}>Dosage: {item.dosage || 'N/A'}</Text>
-      <Text style={styles.cardText}>Start Date: {item.start_date || 'N/A'}</Text>
-      <Text style={styles.cardText}>End Date: {item.end_date || 'N/A'}</Text>
+      <Text style={styles.cardText}>
+         Start Date: {item.start_date ? new Date(item.start_date).toLocaleDateString() : 'N/A'}
+      </Text>
+      <Text style={styles.cardText}>
+         End Date: {item.end_date ? new Date(item.end_date).toLocaleDateString() : 'N/A'}
+      </Text>
       <Text style={styles.cardText}>Contraindications: {item.contraindications || 'N/A'}</Text>
     </View>
   );
 
-  if (loading || medicationLoading) return <Text>Loading...</Text>;
-  if (error || medicationError) return <Text>Error: {error.message}</Text>;
 
   const prescriptions = data?.prescriptionMany || [];
-  const medications = medicationData?.medicationMany || [];
 
 
   return (
@@ -216,13 +201,16 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
       >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Add Prescription</Text>
-          <Text style={styles.modalSubtitle}>Select Medication:</Text>
-          <FlatList
-            data={medications}
-            keyExtractor={(item) => item._id}
-            renderItem={renderMedicationOption}
-            style={styles.medicationList}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Medication"
+            value={newPrescription.medication}
+            onChangeText={(text) =>
+              setNewPrescription({ ...newPrescription, medication: text })
+            }
           />
+
           <TextInput
             style={styles.input}
             placeholder="Contraindications"
@@ -231,6 +219,7 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
               setNewPrescription({ ...newPrescription, contraindications: text })
             }
           />
+         
           <TextInput
             style={styles.input}
             placeholder="Dosage"
@@ -239,26 +228,10 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
               setNewPrescription({ ...newPrescription, dosage: text })
             }
           />
-          {/* <TextInput
-            style={styles.input}
-            placeholder="Start Date (YYYY-MM-DD)"
-            value={newPrescription.start_date}
-            onChangeText={(text) =>
-              setNewPrescription({ ...newPrescription, start_date: text })
-            }
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="End Date (YYYY-MM-DD)"
-            value={newPrescription.end_date}
-            onChangeText={(text) =>
-              setNewPrescription({ ...newPrescription, end_date: text })
-            }
-          /> */}
 
            <TouchableOpacity onPress={() => setShowStartDatePicker(true)} style={styles.dateButton}>
          <Text>
-           Start Date: {newPrescription.start_date ? newPrescription.start_date.toLocaleDateString() : 'Select a date'}
+           Start Date: {newPrescription.start_date.toLocaleDateString()}
          </Text>
         </TouchableOpacity>
         {showStartDatePicker && (
@@ -271,7 +244,7 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 )}
            <TouchableOpacity onPress={() => setShowEndDatePicker(true)} style={styles.dateButton}>
          <Text>
-            End Date: {newPrescription.end_date ? newPrescription.end_date.toLocaleDateString() : 'Select a date'}
+            End Date: {newPrescription.end_date.toLocaleDateString()}
          </Text>
         </TouchableOpacity>
         {showEndDatePicker && (
@@ -314,8 +287,9 @@ const styles = StyleSheet.create({
   },
   addButton: {
     backgroundColor: '#3C58C1',
-    padding: 15,
+    padding: 14,
     borderRadius: 10,
+    marginHorizontal: 10,
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 30,
@@ -366,7 +340,7 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: 'white',
-    padding: 10,
+    padding: 12,
     borderRadius: 5,
     marginBottom: 15,
   },
