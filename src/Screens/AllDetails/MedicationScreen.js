@@ -8,8 +8,10 @@ import { CREATE_MEDICATION, REMOVE_MEDICATION } from '../../../src/Screens/graph
 import { GET_MEDICATION } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActivityIndicator } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
 
@@ -17,6 +19,7 @@ const MedicationScreen = ({ route }) => {
 
   const { consultation } = route.params;
   console.log('id de la consultation',consultation._id);
+  const navigation = useNavigation();
 
   const consultationID = consultation._id;
 
@@ -43,7 +46,7 @@ const MedicationScreen = ({ route }) => {
     }
   };
 
-  const navigation = useNavigation();
+
 
   // States
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -126,6 +129,12 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
           },
         },
       });
+      setNewMedication((prevState) => ({
+        ...prevState,
+        name: '',
+        description: '',
+        dosage: '',
+      }));
     } catch (err) {
       Alert.alert('Error', err.message);
     }
@@ -175,6 +184,12 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
 
        {medications.length > 0 ? (
         <FlatList
@@ -325,6 +340,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 30,
+  },
+  homeButton: {
+    width: 51, // Taille du cercle
+    height: 51, // Taille du cercle
+    borderRadius: 26, // Moitié de la taille pour un cercle parfait
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   addButtonText: {
     color: 'white',

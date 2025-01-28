@@ -33,7 +33,9 @@ const Testconsult = () => {
 
  // Gérer l'affichage pendant le chargement ou en cas d'erreur
     if(loading){
-        return <View><Text>is loading ...</Text></View>
+        return <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#3C58C1" />
+       </SafeAreaView>;
     }else{
         console.log("Error fetching consultations:", error)
     }
@@ -64,7 +66,8 @@ const Testconsult = () => {
       // Appliquer la recherche sur toutes les consultations
       const filteredResults = allConsultations.filter((item) => {
         const patientName = item.patient?.name || "Unknown";
-        return patientName.toLowerCase().includes(searchQuery.toLowerCase());
+        const patientSN = item.patient?.sn || "Unknown";
+       return patientName.toLowerCase().includes(searchQuery.toLowerCase()) || patientSN.toLowerCase().includes(searchQuery.toLowerCase()) ;
       });
       setDisplayedConsultations(filteredResults); // Afficher uniquement les résultats de la recherche
     }
@@ -115,13 +118,16 @@ const renderConsultation = ({ item }) => {
          <Ionicons name="search" size={20} color="gray" />
             <TextInput
                 style={styles.searchInput}
-                placeholder="Search by patient name"
+                placeholder="Search by name or serial number"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
             />
           </View>
           {loading ? (
+        <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color="#3C58C1" />
         <Text>Loading...</Text>
+       </SafeAreaView>
       ) : error ? (
         <Text>Error loading consultations</Text>
       ) : (

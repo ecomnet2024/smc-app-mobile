@@ -5,8 +5,9 @@ import { CREATE_LAB_RESULT, REMOVE_LAB_RESULT } from '../../../src/Screens/graph
 import { GET_LAB_RESULT } from '../../../src/Screens/graphql/Queries';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ActivityIndicator } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -55,6 +56,17 @@ const LabResultScreen = ({ route }) => {
       },
     }
   );
+  const [removeLabResult] = useMutation(REMOVE_LAB_RESULT, {
+    onCompleted: () => {
+      Alert.alert('Success', 'Lab result removed successfully!');
+      refetch();
+    },
+    onError: (error) => {
+      Alert.alert('Error', error.message);
+    },
+  });
+
+
 
   const handleAddLabResult = async () => {
     const medical_staff_Id = await getDoctorIdFromToken();
@@ -77,22 +89,63 @@ const LabResultScreen = ({ route }) => {
           },
         },
       });
+
+      setNewLabResult((prevState) => ({
+        ...prevState,
+        date: '',
+        result: '',
+      }));
     } catch (err) {
       Alert.alert('Error', err.message);
     }
   };
 
+
+  const handleDeleteLabResult = (id) => {
+    if (!id) {
+      Alert.alert('Error', 'Invalid Lab Result ID.');
+      return;
+    }
+    Alert.alert('Confirmation', 'Are you sure you want to delete this lab result?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          removeLabResult({ variables: { id } })
+            .then(() => {
+              console.log('Lab result deleted successfully:', id);
+              refetch();
+            })
+            .catch((error) => {
+              console.error('Error deleting lab result:', error.message);
+              Alert.alert('Error', error.message);
+            });
+        },
+      },
+    ]);
+  }
+
+
   const renderLabResultCard = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <Text style={styles.cardTitle}>Result: {item.result}</Text>
+        <TouchableOpacity
+          onPress={() => handleDeleteLabResult(item._id)}
+          style={styles.trashButton}
+        >
+          <Ionicons name="trash" size={20} color="red" />
+        </TouchableOpacity>
       </View>
       <Text style={styles.cardText}>Date: {item.date || 'N/A'}</Text>
     </View>
   );
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return <SafeAreaView style={styles.container}>
+   <ActivityIndicator size="large" color="#3C58C1" />
+  </SafeAreaView>;
   }
   if (error) {
     return <Text>Error: {error.message}</Text>;
@@ -105,11 +158,12 @@ const LabResultScreen = ({ route }) => {
     
     <View style={styles.container}>
 
-<TouchableOpacity 
-        style={styles.backButton}
-        onPress={() => navigation.navigate("Home")} >
-        <Ionicons name="chevron-back-circle" size={40} color="gray" />
-      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
 
       {labResults.length > 0 ? (
         <FlatList
@@ -210,6 +264,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
+  homeButton: {
+    width: 50, // Taille du cercle
+    height: 50, // Taille du cercle
+    borderRadius: 25, // Moitié de la taille pour un cercle parfait
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom:10,
+    marginTop:-5,
+    marginLeft:3,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
   addButtonText: {
     color: '#fff',
     fontWeight: 'bold',
@@ -275,6 +345,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
   },
   textArea: {
     width: '80%',

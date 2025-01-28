@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Button, Alert , ActivityIndicator} from 'react-native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
 import { useMutation, useQuery } from '@apollo/client';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { CREATE_PATIENT } from '../../src/Screens/graphql/Mutation';
 import { GET_CLINIC ,GET_PATIENT } from '../../src/Screens/graphql/Queries';
 import { UPDATE_STATUS_PATIENT } from '../../src/Screens/graphql/Mutation';
 import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
-import { SafeAreaView } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { setLogVerbosity } from '@apollo/client';
 
@@ -17,13 +17,15 @@ const CreatePatientForm = () => {
     const navigation = useNavigation();
 
 
-  const { data: clinicData, loading: clinicLoading, error: clinicError } = useQuery(GET_CLINIC);
+  const { data: clinicData, loading: clinicLoading, error: clinicError, refetch } = useQuery(GET_CLINIC);
   const { data: patientDataResponse, loading: patientLoading, error: patientError } = useQuery(GET_PATIENT);
 
   const [updatePatientStatus] = useMutation(UPDATE_STATUS_PATIENT);
 
   const [selectedPatientId, setSelectedPatientId] = useState(null); // Stocke l'ID du patient sélectionné
   // Stocke l'ID du patient sélectionné
+
+  console.log("All Clinic",clinicData);
 
 
   const [patientData, setPatientData] = useState({
@@ -39,10 +41,11 @@ const CreatePatientForm = () => {
 
  // Générer les options pour les cliniques
  const clinicOptions =
- clinicData?.clinicMany?.map(clinic => ({
-   key: clinic._id,
-   value: clinic.name,
- })) || [];
+      clinicData?.clinicMany?.map((clinic) => ({
+        key: clinic._id,
+        value: clinic.name,
+      })) || [];
+      console.log('Clinic Options:', clinicOptions);
 
 // Générer les options pour les patients
 const patientOptions =
@@ -103,10 +106,11 @@ const patientOptions =
 
 
   const sn=" ";
-  const clinicId = patientData?.clinic?._id;
-
   
   const handleSubmit = async () => {
+  //     console.log('handleSubmit triggered'); // Ajoutez ce log
+  // alert('handleSubmit triggered'); // Vérifiez aussi avec une alerte
+  
     if (
       !patientData.name ||
       !patientData.age ||
@@ -118,17 +122,16 @@ const patientOptions =
       return;
     }
 
-    console.log("clinic id",clinicId);
-
     try {
+      console.log('Sending mutation with data:', patientData);
       const result = await patientCreateOne({
         variables: {
           record: {
             name: patientData.name,
             age: parseFloat(patientData.age),
             gender: patientData.gender,
-            clinic: "676418c44715a630db6272a4",
-            email: patientData.email,
+            clinic: patientData.clinic,          //"676418c44715a630db6272a4",
+            email: patientData.email,     //il y a une erreur sur email, ca doit etre null et identique
             phone: patientData.phone,
             status: patientData.status,
             sn : sn
@@ -139,7 +142,7 @@ const patientOptions =
         "name:" ,patientData.name,
         "age:"  ,parseFloat(patientData.age),
         "gender:" ,patientData.gender,
-        "clinic:", patientData.clinic._id,
+        "clinic:", patientData.clinic,
         "email:" ,patientData.email,
         "phone:" ,patientData.phone,
         "status:" ,patientData.status,
@@ -168,11 +171,15 @@ const patientOptions =
   };
 
   if (clinicLoading || patientLoading) {
-    return <Text>Loading...</Text>;
+    return <SafeAreaView style={styles.container}>
+    <ActivityIndicator size="large" color="#3C58C1" />
+    </SafeAreaView>;
   }
   if (clinicError || patientError) {
     console.error('Error fetching data:', clinicError || patientError);
-    return <Text>Failed to load data. Please try again later.</Text>;
+    return <SafeAreaView style={styles.container}>
+     <Text>Failed to load data. Please try again later.</Text>;
+     </SafeAreaView>
   }
 
   setLogVerbosity('debug');
@@ -306,8 +313,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   image: {
-    width: '65%',
-    height: 156, // Taille de l'image en haut
+    width: '60%',
+    height: 151, // Taille de l'image en haut
     resizeMode: 'cover', // Adapter l'image
     alignSelf: 'center',
     marginTop:-8,

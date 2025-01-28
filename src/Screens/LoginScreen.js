@@ -39,6 +39,16 @@ const LoginScreen = () => {
           let formErrors = {};
           if (!email) formErrors.email = 'Your email is required';
           if (!password) formErrors.password = 'Please enter your password';
+
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Alert.alert('Validation Error', 'Invalid email format.');
+            return false;
+          }
+          if (password.length < 5) {
+            Alert.alert('Validation Error', 'Password must be at least 5 characters.');
+            return false;
+          }
+
           setErrors(formErrors);
           // Si pas d'erreurs, on peut faire autre chose (comme envoyer les données)
           if (Object.keys(formErrors).length === 0) {
@@ -81,7 +91,6 @@ const LoginScreen = () => {
               Alert.alert('Login Error', e.message + 'An error occurred, please try again later.');
             }
           }
-
         };
 
         const checkStoredData = async () => {

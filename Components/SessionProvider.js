@@ -12,7 +12,7 @@ export const SessionProvider = ({ children }) => {
   const logoutTimer = useRef(null); // Utilise une référence mutable pour gérer le timer
 
 
-  const TOKEN_EXPIRATION_TIME = 59 * 60 * 1000; // 59 minutes en millisecondes
+  const TOKEN_EXPIRATION_TIME = 58 * 60 * 1000; // 58 minutes en millisecondes
 
    // Fonction pour déconnecter l'utilisateur
    const handleLogout = async () => {
@@ -55,7 +55,7 @@ export const SessionProvider = ({ children }) => {
 useEffect(() => {
     const logInterval = setInterval(() => {
       console.log(`Temps restant avant déconnexion: ${Math.floor(remainingTime / 60)} min`);
-    }, 5 * 60 * 1000); // Toutes les 5 minutes
+    }, 10 * 60 * 1000); // Toutes les 10 minutes
 
     return () => clearInterval(logInterval); // Nettoie l'intervalle lorsque le composant est démonté
   }, [remainingTime]);

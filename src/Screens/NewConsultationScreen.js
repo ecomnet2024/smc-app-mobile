@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator } from 'react-native';
+import { Formik } from "formik";
+import * as Yup from "yup";
 
 
 
@@ -251,6 +253,17 @@ const uploadImageToCloudinary = async (fileUri) => {
 
       console.log('Résultat complet de la mutation:', JSON.stringify(result, null, 2));
       Alert.alert('Success', 'Consultation created successfully!');
+
+      setConsultationData((prevState) => ({
+        ...prevState,
+        temperature: '',
+        complain: '',
+        pulse: '',
+        blood_pressure: '',
+        medical_history: '',
+        surgical_history: '',
+        photo_material: [],
+      }));
 
       // Naviguer vers la page de détails
       navigation.navigate('ConsultationTabs',

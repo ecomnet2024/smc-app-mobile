@@ -1,19 +1,24 @@
 import React from 'react'
-import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
+import { StyleSheet, Text, View, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler'
 import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Alert } from 'react-native';
 import { CREATE_ALLERGY, REMOVE_ALLERGY } from '../../../src/Screens/graphql/Mutation';
 import { GET_ALLERGY } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const AllergyScreen = ({ route }) => {
 
   const { consultation } = route.params;
   console.log('id de la consultation',consultation._id);
+  const navigation = useNavigation();
 
   const consultationID = consultation._id;
   const patientId = consultation?.patient?._id;
@@ -22,15 +27,12 @@ const AllergyScreen = ({ route }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       console.log("Token_present",token);
-      
       if (token) {
         const tokenString = String(token)
         const decodedToken = jwtDecode(tokenString);
         const doctorId = decodedToken.user_id;
-
         console.log("token decode",decodedToken);
         return doctorId;
-
       } else {
         console.error("Token not found");
         return null;
@@ -115,6 +117,11 @@ const AllergyScreen = ({ route }) => {
           },
         },
       });
+      setNewAllergy((prevState) => ({
+        ...prevState,
+        substance: '',
+        description: '',
+      }));
     } catch (err) {
       Alert.alert('Error', err.message);
       Alert.alert('Error', 'Failed to add allergy.');
@@ -154,7 +161,9 @@ const AllergyScreen = ({ route }) => {
 
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return <SafeAreaView style={styles.container}>
+    <ActivityIndicator size="large" color="#3C58C1" />
+   </SafeAreaView>;
   }
   if (error) {
     return <Text>Error: {error.message}</Text>;
@@ -162,6 +171,12 @@ const AllergyScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
 
       {/* Display allergies or no data message */}
       {data?.allergyMany?.length > 0 ? (
@@ -242,6 +257,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 30,
+  },
+  homeButton: {
+    width: 50, // Taille du cercle
+    height: 50, // Taille du cercle
+    borderRadius: 25, // Moitié de la taille pour un cercle parfait
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom:12,
+    marginLeft:3,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
   addButtonText: {
     color: 'white',

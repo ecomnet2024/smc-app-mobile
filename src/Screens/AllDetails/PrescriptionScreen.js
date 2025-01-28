@@ -1,8 +1,9 @@
 import React from 'react'
-import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
+import { StyleSheet, Text, View, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler'
 import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Alert } from 'react-native';
 import { CREATE_PRESCRIPTION, REMOVE_PRESCRIPTION } from '../../../src/Screens/graphql/Mutation';
 import { GET_PRESCRIPTION } from '../../../src/Screens/graphql/Queries';
@@ -10,6 +11,8 @@ import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ActivityIndicator } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 
 const PrescriptionScreen = ({ route }) => {
@@ -137,6 +140,12 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
           },
         },
       });
+      setNewPrescription((prevState) => ({
+        ...prevState,
+        contraindications: '',
+        medication: '',
+        dosage: '',
+      }));
     } catch (err) {
       Alert.alert('Error', err.message);
     }
@@ -175,6 +184,12 @@ const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
 
        {prescriptions.length > 0 ? (
         <FlatList
@@ -293,6 +308,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 30,
+  },
+  homeButton: {
+    width: 50, // Taille du cercle
+    height: 50, // Taille du cercle
+    borderRadius: 25, // Moitié de la taille pour un cercle parfait
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom:12,
+    marginLeft:3,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
   addButtonText: {
     color: 'white',

@@ -16,7 +16,6 @@ query RoleMany {
   roleMany {
     _id
     name
-    description
   }
 }`
 
@@ -105,8 +104,6 @@ query ClinicMany {
     city
     name
     phoneNumber
-    region
-    street_location
   }
 }
  `
@@ -125,6 +122,7 @@ query ClinicMany {
 export const GET_VACCINATION = gql`
 query VaccinationMany($filter: FilterFindManyVaccinationInput) {
   vaccinationMany(filter: $filter) {
+    _id
     date
     vaccine
     createdAt
@@ -134,6 +132,7 @@ query VaccinationMany($filter: FilterFindManyVaccinationInput) {
 export const GET_LAB_RESULT = gql`
 query LabResultMany($filter: FilterFindManyLabResultInput) {
   labResultMany(filter: $filter) {
+    _id
     date
     result
   }
@@ -208,15 +207,11 @@ query UserById($id: MongoID!) {
   }
 }`
 export const GET_EMERGENCY = gql`
-query EmergencyMany($filter: FilterFindManyEmergencyInput) {
-  emergencyMany(filter: $filter) {
-    _id
+query EmergencyById {
+  emergencyMany {
     complain
+    patient
     createdAt
-    createdBy {
-      _id
-    }
-    name
   }
 }`
 ;

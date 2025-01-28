@@ -1,20 +1,26 @@
 import React from 'react'
-import { StyleSheet, Text, View, SafeAreaView, Modal,Image, TouchableOpacity, FlatList, TextInput } from 'react-native'
+import { StyleSheet, Text, View, Modal,Image, TouchableOpacity, FlatList, TextInput } from 'react-native'
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler'
 import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { ADD_FEEDBACK } from '../../../src/Screens/graphql/Mutation';
 import { GET_FEDDBACK } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 
 
 const FeedbackScreen = ({ route }) => {
 
   const { consultation } = route.params;
   const consultationID = consultation._id;
+  const navigation = useNavigation();
+
  // States
  const [newFeedback, setNewFeedback] = useState('');
  //const [selectedFeedbackType, setSelectedFeedbackType] = useState('doctor_feedback');
@@ -176,13 +182,22 @@ useEffect(() => {
  };
 
 
- if (loading) return <View><Text>Loading...</Text></View>;
+ if (loading) return <SafeAreaView style={styles.container}>
+ <ActivityIndicator size="large" color="#3C58C1" />
+</SafeAreaView>;
  if (error) return <View><Text>Error: {error.message}</Text></View>;
 
 
 
  return (
    <View style={styles.container}>
+    <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
+
      <FlatList
        data={tableData}
        keyExtractor={(item, index) => `${item.createdAt}-${index}`}
@@ -228,6 +243,22 @@ feedbackCard: {
   borderRadius: 10,
   marginBottom: 10,
   elevation: 2,
+},
+homeButton: {
+  width: 50, // Taille du cercle
+  height: 50, // Taille du cercle
+  borderRadius: 25, // Moitié de la taille pour un cercle parfait
+  backgroundColor: "white",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom:15,
+  marginLeft:3,
+  marginTop:-4,
+  shadowColor: "#000", 
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 3,
+  elevation: 5,
 },
 feedbackHeader: {
   flexDirection: 'row',

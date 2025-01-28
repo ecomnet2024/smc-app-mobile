@@ -10,12 +10,12 @@ import { useNavigation } from '@react-navigation/native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useMutation, useQuery } from '@apollo/client';
 import { CREATE_USERS } from '../../src/Screens/graphql/Mutation';
-import { GET_ROLES } from '../../src/Screens/graphql/Queries';
+import { GET_ROLES, GET_CLINIC } from '../../src/Screens/graphql/Queries';
 import { Alert } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
-import { Picker } from '@react-native-picker/picker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SelectList } from 'react-native-dropdown-select-list';
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 
 const SignUpScreen = () => {
@@ -24,27 +24,63 @@ const SignUpScreen = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
   const [address, setAddress] = useState('');
-  const [gender, setGender] = useState('M'); // Default to 'M'
+  const [clinic, setClinic] = useState('');
+  const [gender, setGender] = useState('');
   const [selectedRole, setSelectedRole] = useState(null);
 
   const [createUser, { loading, error, data }] = useMutation(CREATE_USERS);
   const { data: rolesData, loading: rolesLoading, error: rolesError } = useQuery(GET_ROLES);
-  //const [createUser, { loading: createLoading, error: createError }] = useMutation(CREATE_USERS);
+  const { data: clinicData, loading: clinicLoading, error: clinicError } = useQuery(GET_CLINIC);
+
+  console.log('Roles Data:', rolesData);
+  console.log('Clinic Data:', clinicData);
+
 
     const handleLogin = ()=>{
       navigation.navigate("Login");
       };
+
+ const excludedRoles = ['Admin', 'Super Admin']; // Liste des rôles à exclure
+
+    const clinicOptions =
+      clinicData?.clinicMany?.map((clinic) => ({
+        key: clinic._id,
+        value: clinic.name,
+      })) || [];
+      console.log('Clinic Options:', clinicOptions);
+
+      const filteredRoles = Array.isArray(rolesData?.roleMany)
+      ? rolesData.roleMany.filter((role) => !excludedRoles.includes(role.name))
+      : [];
+    console.log('Filtered Roles:', filteredRoles);
+
+    const roleOptions = filteredRoles.map((role) => ({
+      key: role._id, // Utilise l'_id pour la clé
+      value: role.name, // Utilise le name pour la valeur
+    }));
+    console.log('Role Options:', roleOptions);
+
+       
+ // Options pour le champ Gender
+ const genderOptions = [
+  { key: 'M', value: 'M' },
+  { key: 'F', value: 'F' },
+];
     
     const validateFields = () => {
-        if (!email || !password || !firstName || !lastName || !phone || !country || !address|| !selectedRole) {
+        if (!email || !password || !firstName || !lastName || !phone || !country || !address|| !selectedRole ||!clinic) {
           Alert.alert('Validation Error', 'All fields are required.');
           return false;
         }
+        console.log('Role Options:', roleOptions);
+        console.log('Clinic Options:', clinicOptions);
+
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           Alert.alert('Validation Error', 'Invalid email format.');
           return false;
@@ -60,8 +96,14 @@ const SignUpScreen = () => {
         return true;
       };
 
+
       const handleSignUp = async () => {
+
         if (!validateFields()) return;
+        if (excludedRoles.includes(selectedRole)) {
+          Alert.alert('Error', 'You do not have access to select this role.');
+          return;
+        }
     
         try {
           const response = await createUser({
@@ -74,21 +116,16 @@ const SignUpScreen = () => {
                 phone: phone,
                 country: country,
                 address: address,
-                gender,
+                gender: gender,
+                clinic:  clinic,        //"676418c44715a630db6272a4",
                 role: selectedRole,
               },
             },
           });
     
           const result = response.data.userCreateOne;
-          // if (result.error) {
-          //   const validationError = result.error.message;
-          //   console.error('Validation Error:', validationError);
-          //   Alert.alert('Validation Error', validationError);
-          //   return;
-          // }
 
-          Alert.alert('Success', 'User created successfully! Now you can login');
+          Alert.alert('Success', 'Account created successfully! Now you can login');
             navigation.navigate('Login');
     
         } catch (err) {
@@ -98,13 +135,27 @@ const SignUpScreen = () => {
       };
   
 
-
       if (rolesLoading) {
-        return <ActivityIndicator size="large" color="#3C58C1" />;
+        return <SafeAreaView style={styles.container}>
+          <ActivityIndicator size="large" color="#3C58C1" />
+          </SafeAreaView>;
       }
-    
       if (rolesError) {
+        console.error('Error fetching roles:', rolesError.message);
         return <Text>Error fetching roles: {rolesError.message}</Text>;
+      }
+      
+      if (!Array.isArray(rolesData?.roleMany) || rolesData.roleMany.length === 0) {
+        return <Text>No roles available. Please contact support.</Text>;
+      }
+      
+      if (clinicLoading) {
+        return <SafeAreaView style={styles.container}>
+          <ActivityIndicator size="large" color="#3C58C1" />;
+          </SafeAreaView>
+      }
+      if (clinicError) {
+        return <Text>Error fetching clinics: {clinicError.message}</Text>;
       }
 
 
@@ -118,7 +169,7 @@ const SignUpScreen = () => {
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={36} color="gray" />
+        <Ionicons name="chevron-back-circle" size={37} color="gray" />
       </TouchableOpacity>
 
      <TouchableOpacity style={styles.bannerButton}>
@@ -149,7 +200,17 @@ const SignUpScreen = () => {
          <MaterialIcons name="key" size={24} color="black" />
 
            <TextInput style={styles.TextInput} 
-           placeholder='Enter your password' value={password} onChangeText={setPassword} secureTextEntry={true} />
+           placeholder='Enter your password' value={password} onChangeText={setPassword} secureTextEntry={!isPasswordVisible} />
+            <TouchableOpacity
+        onPress={() => setPasswordVisible(!isPasswordVisible)}
+        style={styles.iconContainer}
+      ><Icon
+          name={isPasswordVisible ? "visibility" : "visibility-off"}
+          size={24}
+          color="#888"
+        />
+      </TouchableOpacity>
+
          </View>
       </View>
 
@@ -175,32 +236,35 @@ const SignUpScreen = () => {
 
        {/* Gender */}
        <View style={styles.formContainer}>
-              <Text style={styles.label}>Gender</Text>
-              <View style={styles.inputContainer}>
-                <Ionicons name="male-female" size={24} color="black" />
-                <TextInput
-                  style={styles.TextInput}
-                  placeholder="M or F"
-                  value={gender}
-                  onChangeText={setGender}
-                />
-              </View>
+            <Text style={styles.label}>Gender</Text>
+        <SelectList
+          setSelected={(val) => setGender( val )}
+          data={genderOptions}
+          placeholder="Select Gender M or F"
+          boxStyles={styles.dropdown}
+          dropdownStyles={styles.dropdownList}
+        />
             </View>
+
+            <Text style={styles.label}>Clinic</Text>
+       <SelectList
+         setSelected={(val) => setClinic( val )}
+         data={clinicOptions}
+         placeholder="Select Clinic"
+         boxStyles={styles.dropdown}
+         dropdownStyles={styles.dropdownList}
+       />
 
          {/* Role Selection */}
          <View style={styles.formContainer}>
               <Text style={styles.label}>Role</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedRole}
-                  onValueChange={(itemValue) => setSelectedRole(itemValue)}
-                >
-                  <Picker.Item label="Select Role" value={null} />
-                  {rolesData.roleMany.map((role) => (
-                    <Picker.Item key={role._id} label={role.name} value={role._id} />
-                  ))}
-                </Picker>
-              </View>
+              <SelectList
+              setSelected={(val) => setSelectedRole(val)}
+              data={roleOptions}
+              placeholder="Select Role"
+              boxStyles={styles.dropdown}
+             dropdownStyles={styles.dropdownList}
+         />
             </View>
 
 
@@ -228,7 +292,6 @@ const SignUpScreen = () => {
       <Text style={styles.label}>Address</Text>
          <View style={styles.inputContainer}>
          <Ionicons name="location-sharp" size={24} color="black" />
-
            <TextInput style={styles.TextInput} 
            placeholder="Address" value={setAddress} onChangeText={setAddress} />
          </View>
@@ -240,11 +303,11 @@ const SignUpScreen = () => {
         {loading && <Text>Loading...</Text>}
       {error && <Text>Error: {error.message}</Text>}
 
-        <Text style={styles.Text}> OR </Text>
+        {/* <Text style={styles.Text}> OR </Text>
 
         <View style={styles.buttonContainer}>
         <TouchableOpacity style= {styles.GoogleButton}>
-        <Image source={require('../assets/chrome.png')} style={styles.icon} />
+        <Image source={require('../assets/chrome.png')} style={styles.icon} />     //Features
           <Text style={styles.buttonText2}>Google</Text>
         </TouchableOpacity>
 
@@ -252,7 +315,7 @@ const SignUpScreen = () => {
           <MaterialIcons name="apple" size={24} color="black" />
           <Text style={styles.buttonText2}>Apple</Text>
         </TouchableOpacity>
-       </View>
+       </View> */}
 
        <View style={styles.TextContainer}>
        <Text style={styles.Text}> I already have an account
@@ -285,7 +348,7 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     borderWidth: 1,
-    borderRadius: 13,
+    borderRadius: 10,
     paddingHorizontal: 10,
   },
   formContainer:{
@@ -293,9 +356,9 @@ const styles = StyleSheet.create({
   },
   inputContainer:{
     borderWidth: 1,
-    borderRadius: 13,
+    borderRadius: 10,
     paddingHorizontal: 20,
-    paddingVertical: 5,
+    paddingVertical: 2,
     flexDirection:"row",
     alignItems:"center",
   },
@@ -344,7 +407,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 15,
     alignItems: 'center',
-    marginVertical:9,
+    marginVertical:14,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -396,6 +459,19 @@ const styles = StyleSheet.create({
     alignItems:'center',
     marginVertical:8,
     marginBottom:20,
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderColor: '#000000',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  dropdownList: {
+    backgroundColor: '#f9f9f9',
+  },
+  iconContainer: {
+    marginLeft: 10,
   },
 
 })

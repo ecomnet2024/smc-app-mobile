@@ -1,19 +1,25 @@
 import React from 'react'
-import { StyleSheet, Text, View, SafeAreaView, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
+import { StyleSheet, Text, View, Modal, TouchableOpacity, FlatList, TextInput } from 'react-native'
 import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client';
 import { Alert } from 'react-native';
-import { CREATE_VACCINATION } from '../../../src/Screens/graphql/Mutation';
+import { CREATE_VACCINATION, REMOVE_VACCINATION } from '../../../src/Screens/graphql/Mutation';
 import { GET_VACCINATION } from '../../../src/Screens/graphql/Queries';
 import {jwtDecode} from 'jwt-decode';
+import { ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+
 
 const VaccinationScreen = ({ route }) => {
 
   const { consultation } = route.params;
+  const navigation = useNavigation();
   console.log('id de la consultation',consultation._id);
   const consultationID = consultation._id;
 
@@ -55,6 +61,17 @@ const VaccinationScreen = ({ route }) => {
       },
     },
   });
+  console.log("VACCINATION DATA: ", data);
+
+  const [removeVaccination] = useMutation(REMOVE_VACCINATION, {
+    onCompleted: () => {
+      Alert.alert('Success', 'Vaccination removed successfully!');
+      refetch();
+    },
+    onError: (error) => Alert.alert('Error', error.message),
+  });
+
+
 
   const handleAddVaccination = async () => {
     if (!vaccine || !date) {
@@ -100,25 +117,64 @@ const VaccinationScreen = ({ route }) => {
     }
   };
 
+  const handleDeleteVaccination = (id) => {
+    if (!id) {
+      Alert.alert('Error', 'Invalid Vaccination ID.');
+      return;
+    }
+    Alert.alert('Confirmation', 'Are you sure you want to delete this vaccination?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          removeVaccination({ variables: { id } })
+            .then(() => {
+              Alert.alert('Success', 'Vaccination removed successfully!');
+              refetch();
+            })
+            .catch((error) => {
+              Alert.alert('Error', error.message);
+            });
+        },
+      },
+    ]);
+  };
+  
+
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.homeButton}
+        onPress={() => navigation.navigate("HomeTabs")}
+      >
+      <Ionicons name="home" size={30} color="black" />
+     </TouchableOpacity>
 
       {/* Vaccination List */}
       {loading ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <SafeAreaView style={styles.container}>
+          <Text style={styles.loadingText}>Loading...</Text>
+         <ActivityIndicator size="large" color="#3C58C1" />
+        </SafeAreaView>
       ) : error ? (
         <Text style={styles.errorText}>Error fetching data</Text>
-      ) : data.vaccinationMany.length === 0 ? (
+      ) : data?.vaccinationMany?.length === 0 ? (
         <Text style={styles.noDataText}>No vaccination yet</Text>
       ) : (
         <FlatList
-          data={data.vaccinationMany}
+          data={data?.vaccinationMany}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <View style={styles.vaccinationItem}>
               <Text style={styles.vaccinationText}>Vaccine: {item.vaccine}</Text>
               <Text style={styles.vaccinationText}>Date: {new Date(item.date).toISOString().split("T")[0]}</Text>
+              <View style={styles.trashButton}>
+              <TouchableOpacity onPress={() => handleDeleteVaccination(item._id)}>
+              <Icon name="trash-can" size={24} color="red" />
+              </TouchableOpacity>
+              </View>
             </View>
           )}
         />
@@ -208,6 +264,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
+  homeButton: {
+    width: 50, // Taille du cercle
+    height: 50, // Taille du cercle
+    borderRadius: 25, // Moitié de la taille pour un cercle parfait
+    backgroundColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom:12,
+    marginLeft:3,
+    shadowColor: "#000", 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
   addButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -285,4 +356,8 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
   },
+  trashButton:{
+    marginTop:5,
+    marginLeft:240,
+  }
 })

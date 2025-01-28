@@ -115,17 +115,17 @@ function SplashScreen({ navigation }) {
 function AuthStack() {
   return (
     <Stack.Navigator initialRouteName='Splash'>
-      <Stack.Screen name='SignUp' options={{headerShown:false}} component={SignUpScreen} />
-      <Stack.Screen name='Login' options={{headerShown:false}} component={LoginScreen} />
+      <Stack.Screen name='SignUp' options={{headerShown:false, animation:"slide_from_right"}} component={SignUpScreen} />
+      <Stack.Screen name='Login' options={{headerShown:false, animation:"slide_from_left"}} component={LoginScreen} />
       <Stack.Screen name="Splash" options={{ headerShown: false }} component={SplashScreen}  />
-      <Stack.Screen name='Forgot' options={{headerShown:false}} component={ForgotScreen} />
+      <Stack.Screen name='Forgot' options={{headerShown:false, animation:"fade_from_bottom"}} component={ForgotScreen} />
       <Stack.Screen name='Home' options={{headerShown:false}} component={HomeScreen} />
-      <Stack.Screen name='NewConsultation' options={{headerShown:false}} component={NewConsultationScreen} />
+      <Stack.Screen name='NewConsultation' options={{headerShown:false, animation:"slide_from_right"}} component={NewConsultationScreen} />
       <Stack.Screen name="HomeTabs" options={{ headerShown: false }} component={HomeTabNavigator} />
       <Stack.Screen name="NewPatient" options={{ headerShown: false }} component={NewPatientScreen} />
-      <Stack.Screen name="Details" options={{ headerShown: false }} component={ConsultationDetails} />
+      <Stack.Screen name="Details" options={{ headerShown: false , animation:"ios_from_left"}} component={ConsultationDetails} />
       <Stack.Screen name="ConsultationTabs" options={{ headerShown: false }} component={ConsultationTabs} />
-      <Stack.Screen name="Emergency" options={{ headerShown: false }} component={EmergencyScreen} />
+      <Stack.Screen name="Emergency" options={{ headerShown: false , animation:"ios_from_left"}} component={EmergencyScreen} />
       <Stack.Screen name="Labsresult" options={{ headerShown: false }} component={LabResultScreen} />
 
     </Stack.Navigator>

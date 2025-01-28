@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Button, Alert, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery } from '@apollo/client';
+import { ActivityIndicator } from 'react-native';
 import {  CREATE_EMERGENCY } from '../../src/Screens/graphql/Mutation';
-import { GET_EMERGENCY ,GET_PATIENT } from '../../src/Screens/graphql/Queries';
+import { GET_EMERGENCY } from '../../src/Screens/graphql/Queries';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import {jwtDecode} from 'jwt-decode';
@@ -14,18 +15,22 @@ import { Image } from 'react-native';
 
 const EmergencyScreen = () => {
 
-
-  const [doctorId, setDoctorId] = useState(null);
-
-  const [emergencyData, setEmergencyData] = useState({
-    name: '',
-    complain: '',
-    createdAt: new Date(),
-  });
-
-
   const navigation = useNavigation();
 
+  const [emergencyData, setEmergencyData] = useState({
+    patient: '',
+    complain: '',
+    temperature: '',
+    pulse: '',
+    blood_pressure: '',
+    createdAt: new Date(),
+    status: 'New',
+  });
+
+  const [isFormValidated, setIsFormValidated] = useState(false); // Nouveau état pour gérer la visibilité du bouton
+  const callCenterNumber = ''; // un numéro ici
+
+ 
   const [createEmergency, { loading: createLoading }] = useMutation(CREATE_EMERGENCY);
 
   const getDoctorIdFromToken = async () => {
@@ -49,38 +54,34 @@ const EmergencyScreen = () => {
   };
 
   const handleCallCenter = () => {
-    Alert.alert('Feature Unavailable', 'Sorry, this feature is currently unavailable.', [{ text: 'OK', style: 'destructive' }]);
+    if (callCenterNumber) {
+      // Ouvre le composeur téléphonique
+      Linking.openURL(`tel:${callCenterNumber}`).catch(() => {
+        Alert.alert('Error', 'Failed to initiate the call.');
+      });
+    } else {
+      Alert.alert('Feature Unavailable', 'Sorry, this feature is currently unavailable.');
+    }
   };
 
-  useEffect(() => {
-    getDoctorIdFromToken();
-  }, []);
-
-  const { data: emergencyDataResponse, loading: emergencyLoading, error: emergencyError, refetch } = useQuery(GET_EMERGENCY , {
-    variables: {
-      filter: {
-        createdBy: doctorId, // Utilisez l'ID du médecin comme filtre
-      },
-    },
-  });
+  // const { data: emergencyDataResponse, loading: emergencyLoading, error: emergencyError, refetch } = useQuery(GET_EMERGENCY);
   // Exécution de la requête avec un filtre
 
-  useFocusEffect(
-    React.useCallback(() => {
-      refetch(); // Rafraîchir les données à chaque fois que la page est affichée
-      console.log('Data refreshed on focus');
-    }, [refetch])
-  );
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     refetch(); // Rafraîchir les données à chaque fois que la page est affichée
+  //     console.log('Data refreshed on focus');
+  //   }, [refetch])
+  // );
 
 
   const handleCreateEmergency = async () => {
 
-    if (!emergencyData.name || !emergencyData.complain) {
+    if (!emergencyData.patient || !emergencyData.complain ||!emergencyData.blood_pressure || !emergencyData.pulse||!emergencyData.temperature) {
       Alert.alert('Error', 'Please fill in all fields for the emergency.');
       return;
     }
     const medical_staff_Id = await getDoctorIdFromToken();
-
     if (!medical_staff_Id) {
       Alert.alert('Error', 'Missing doctor or patient information.');
       return;
@@ -90,18 +91,22 @@ const EmergencyScreen = () => {
       const result = await createEmergency({
         variables: {
           record: {
-            name: emergencyData.name,
+            patient: emergencyData.patient,
             complain: emergencyData.complain,
             createdAt: emergencyData.createdAt,
+            blood_pressure: emergencyData.blood_pressure,
+            temperature: emergencyData.temperature,
+            pulse: emergencyData.pulse,
             createdBy: medical_staff_Id,
+            status: emergencyData.status,
           },
         },
       });
 
       if (result.data?.emergencyCreateOne?.record) {
-        Alert.alert('Success', 'Your emergency has been send! Please wait you will receive a feedback as soon as possible');
-        setEmergencyData({ name: '', complain: '', createdAt: new Date() });
-        refetch();
+        Alert.alert( 'Your emergency has been send!', 'Please wait you will receive a feedback as soon as possible');
+        setEmergencyData({ patient: '', complain: '',pulse: '',temperature: '',blood_pressure: '' });
+        setIsFormValidated(true); // Active le bouton après validation
 
       } else {
         const errorMsg = result.data?.emergencyCreateOne?.error?.message || 'Failed to create emergency.';
@@ -114,11 +119,13 @@ const EmergencyScreen = () => {
   };
 
 
-  if (emergencyLoading) return <Text>Loading emergencies...</Text>;
-  if (emergencyError) {
-    console.error('Error fetching emergencies:', emergencyError);
-    return <Text>Failed to load emergencies. Please try again later.</Text>;
-  }
+  // if (emergencyLoading) return <SafeAreaView style={styles.container}>
+  // <ActivityIndicator size="large" color="#3C58C1" />
+  // </SafeAreaView>;
+  // if (emergencyError) {
+  //   console.error('Error fetching emergencies:', emergencyError);
+  //   return <Text>Failed to load emergencies. Please try again later.</Text>;
+  // }
 
 
   return (
@@ -126,7 +133,7 @@ const EmergencyScreen = () => {
       <SafeAreaView style={styles.container}>
         <View>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back-circle" size={40} color="gray" />
+          <Ionicons name="chevron-back-circle" size={38} color="gray" />
         </TouchableOpacity>
         </View>
 
@@ -153,29 +160,68 @@ const EmergencyScreen = () => {
 
 <ScrollView>
           <Text style={styles.header}>Describe Your Emergency</Text>
+          <Text style={styles.label}>Patient name</Text>
           <TextInput
             placeholder="Name"
-            value={emergencyData.name}
+            value={emergencyData.patient}
             style={styles.input}
-            onChangeText={(text) => setEmergencyData({ ...emergencyData, name: text })}
+            onChangeText={(text) => setEmergencyData({ ...emergencyData, patient: text })}
           />
+          <Text style={styles.label}>Complaint</Text>
           <TextInput
             placeholder="Complaint"
             value={emergencyData.complain}
             style={styles.input}
             onChangeText={(text) => setEmergencyData({ ...emergencyData, complain: text })}
           />
+           <Text style={styles.label}>Pulse</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          placeholder="/min"
+          value={emergencyData.pulse}
+          onChangeText={(value) => setEmergencyData({ ...emergencyData, pulse: parseFloat(value) })}
+        />
+
+        <Text style={styles.label}>Temperature</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numeric"
+          placeholder="°C"
+          value={emergencyData.temperature}
+          onChangeText={(value) => setEmergencyData({ ...emergencyData, temperature: parseFloat(value) })}
+        />
+
+        <Text style={styles.label}>Blood Pressure</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="numbers-and-punctuation"
+          value={emergencyData.blood_pressure}
+          onChangeText={(text) => setEmergencyData({ ...emergencyData, blood_pressure: text })}
+          placeholder="SYS/DIA"
+        />
+
           <Button title="Submit Emergency" onPress={handleCreateEmergency} disabled={createLoading} />
 
-          <Text style={styles.header}>Existing Emergencies</Text>
+          {/* <Text style={styles.header}>Emergency in the treatment list</Text>
           {emergencyDataResponse?.emergencyMany?.map((emergency) => (
             <View key={emergency.createdAt} style={styles.emergencyCard}>
               <Text style={styles.emergencyName}>{emergency.name}</Text>
               <Text style={styles.emergencyDetail}>{emergency.complain}</Text>
               <Text style={styles.emergencyDate}>{new Date(emergency.createdAt).toLocaleDateString()}</Text>
+              <Text>You will receive a feedback as soon as possible.</Text>
+              <Text>You can also test our Call feature</Text>
             </View>
-          ))}
+          ))} */}
         </ScrollView>
+
+         {/* Bouton Call Center */}
+      {isFormValidated && (
+        <TouchableOpacity style={styles.callButton} onPress={handleCallCenter}>
+          <Ionicons name="call" size={30} color="#fff" />
+          <Text style={styles.callButtonText}>Call Center</Text>
+        </TouchableOpacity>
+      )}
 
       </SafeAreaView>
     </GestureHandlerRootView>
@@ -193,6 +239,27 @@ const styles = StyleSheet.create({
   backButton: {
     marginBottom: 20,
     marginTop: 11,
+  },
+  label: {
+    fontSize: 14,
+    color: '#333',
+  },
+  callButton: {
+    position: 'absolute',
+    bottom: 20,
+    left: 150,
+    backgroundColor: '#08CC0A',
+    padding: 15,
+    borderRadius: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation:5,
+  },
+  callButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft: 10,
+    fontWeight: 'bold',
   },
   choiceContainer: {
     flexDirection: 'row',
@@ -219,15 +286,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
     justifyContent: 'space-between',
-  },
-  callbutton: {
-    width: 150,
-    height: 120,
-    backgroundColor: '#008000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 15,
-    marginHorizontal:5 ,
   },
   consultationbutton: {
     width: 150,
@@ -265,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    marginTop: 20,
+    marginTop: 10,
     textAlign: 'center',
     color: '#333',
   },

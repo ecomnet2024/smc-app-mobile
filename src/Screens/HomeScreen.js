@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button } from 'react-native'
 import React,  { useEffect, useContext, useRef }  from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { GestureHandlerRootView, TouchableOpacity, TextInput, ScrollView } from 'react-native-gesture-handler'
-import { Image } from 'react-native'
+import { Image , ActivityIndicator} from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useState } from 'react'
 import { Animated } from 'react-native';
@@ -202,13 +202,18 @@ const scrollToTop = () => {
     navigation.navigate("Emergency");
  }
   if (loading) {
-    return <SafeAreaView><Text>Loading...</Text></SafeAreaView>; // Ou votre propre composant de chargement
+    return <SafeAreaView style={styles.container}>
+    <ActivityIndicator size="large" color="#3C58C1" />
+    </SafeAreaView>;
   }
   if (error) {
     return <SafeAreaView><Text>Error: {error.message}</Text></SafeAreaView>;
   }
   if (userLoading) {
-    return <Text>Loading user data...</Text>;
+    return <SafeAreaView style={styles.container}>
+    <ActivityIndicator size="large" color="#3C58C1" />
+    <Text>Loading user data...</Text>
+    </SafeAreaView>;
   }
   if (userError) {
     console.error('Error fetching user data:', userError);
@@ -311,7 +316,6 @@ const scrollToTop = () => {
     </SafeAreaView>
     </GestureHandlerRootView>
   )
-
 }
 
 
@@ -394,8 +398,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   logo2: {
-    width: 100,
-    height: 105,
+    width: 96,
+    height: 100,
     resizeMode: 'contain',
   },
   logo3: {
@@ -419,8 +423,8 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   profileImage: {
-    width: 47,
-    height: 47,
+    width: 48,
+    height: 48,
     borderRadius: 25,
     marginLeft: 125,
     borderWidth: 1,
