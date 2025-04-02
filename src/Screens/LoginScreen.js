@@ -12,6 +12,7 @@ import { useMutation } from '@apollo/client';
 import { USER_LOGIN } from '../../src/Screens/graphql/Mutation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { colors } from '../assets/utils/color';
 
 
 
@@ -144,7 +145,7 @@ const LoginScreen = () => {
       <View style={styles.formContainer}>
       <Text style={styles.label}>Email</Text>
          <View style={styles.inputContainer}>
-         <AntDesign name="user" size={24} color="black" />
+         <AntDesign name="mail" size={24} color="black" />
 
            <TextInput style={styles.TextInput} 
            placeholder='Enter your email'  value={email} onChangeText={setEmail} keyboardType="email-address" />
@@ -186,12 +187,15 @@ const LoginScreen = () => {
         <Text style={styles.Text}> OR </Text>
 
         <View style={styles.buttonContainer}>
-        <TouchableOpacity style= {styles.GoogleButton}>
-        <Image source={require('../assets/chrome.png')} style={styles.icon} />
+        <TouchableOpacity style={styles.GoogleButton} 
+        onPress={() => Alert.alert("", "This feature is not available yet.", [{ text: "OK" }])}
+        >
+          <Image source={require('../assets/chrome.png')} style={styles.icon} />
           <Text style={styles.buttonText2}>Google</Text>
-        </TouchableOpacity>
+       </TouchableOpacity>
 
-        <TouchableOpacity style= {styles.AppleButton}>
+        <TouchableOpacity style= {styles.AppleButton} 
+        onPress={() => Alert.alert("", "This feature is not available yet.", [{ text: "OK" }])}>
           <MaterialIcons name="apple" size={24} color="black" />
           <Text style={styles.buttonText2}>Apple</Text>
         </TouchableOpacity>
@@ -200,7 +204,7 @@ const LoginScreen = () => {
        <View style={styles.TextContainer}>
        <Text style={styles.Text}> Don't you have an account? </Text>
       <TouchableOpacity>
-       <Text style={{color:"#3C58C1", fontSize: 16}} onPress={handleSignUp}> Sign Up </Text>
+       <Text style={{color: colors.primary, fontSize: 17}} onPress={handleSignUp}> Sign Up </Text>
       </TouchableOpacity>
        </View>
 
@@ -215,11 +219,11 @@ export default LoginScreen
 const styles = StyleSheet.create({
   container:{
     flex: 1,
-    marginTop: 12,
-    marginHorizontal: 10,
+    marginTop: 11,
+    marginHorizontal: 12,
   },
   formContainer:{
-    marginTop:35,
+    marginTop:38,
   },
   inputContainer:{
     borderWidth: 1,
@@ -228,23 +232,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     flexDirection:"row",
     alignItems:"center",
+    marginTop: 5,
+    marginHorizontal: 3,
   },
   TextInput:{
     flex:1,
     paddingHorizontal:10,
     fontWeight:"light",
   },
-  backButton: {
-    left: 5,
-    zIndex: 2,
-  },
   bannerButton: {
     width: '100%',
-    height: 125,
+    height: 135,
     marginBottom: 20, // Espace entre la bannière et le formulaire
     borderRadius: 25, 
     overflow: 'hidden', 
-    backgroundColor:"#3C58C1",
+    backgroundColor: colors.primary,
     alignItems:'center',
     marginTop:10,
     justifyContent:'center',
@@ -259,23 +261,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#333',
+    marginHorizontal: 9,
   },
   forgetPass:{
-    color:"#3C58C1",
+    color: colors.primary,
     marginVertical:8,
   },
   title: {
     fontSize: 20,
     fontWeight:"semibold",
-    color:"#3C58C1",
+    color: colors.primary,
   },
   signInButton: {
-    backgroundColor: "#3C58C1",
-   paddingVertical: 10,
+    backgroundColor: colors.primary,
+   paddingVertical: 11,
     marginHorizontal: 10,
-    borderRadius: 15,
+    borderRadius: 14,
     alignItems: 'center',
-    marginVertical:5,
+    marginVertical: 7,
+    marginBottom: 18,
   },
   buttonText: {
     color: '#FFFFFF',
@@ -294,8 +298,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {           
     flexDirection: 'row',  
-    justifyContent: 'space-between',
-    width: '80%',        
+    justifyContent: 'space-evenly',
+    width: '80%',  
+    alignItems: 'center',      
   },
   GoogleButton:{
     marginLeft:20,
@@ -306,13 +311,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     borderRadius: 10,
     flexDirection:'row',
-
   },
   AppleButton:{
     backgroundColor: '#fff',
     paddingVertical: 7,
     paddingHorizontal:30,
-    marginHorizontal: 10,
+    marginHorizontal: 28,
     borderRadius: 10,
     flexDirection:'row',
   },
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
     flexDirection:'row',
     justifyContent:'center',
     alignItems:'center',
-    marginVertical:8,
+    marginVertical: 10,
   },
   errorText: {
     color: 'red',

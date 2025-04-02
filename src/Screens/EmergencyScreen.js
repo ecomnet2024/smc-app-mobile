@@ -133,7 +133,7 @@ const EmergencyScreen = () => {
       <SafeAreaView style={styles.container}>
         <View>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back-circle" size={38} color="gray" />
+          <Ionicons name="chevron-back-circle" size={39} color="gray" />
         </TouchableOpacity>
         </View>
 
@@ -141,19 +141,19 @@ const EmergencyScreen = () => {
       <View style={{ position: 'absolute', width: '100%', height: '100%' }}>
   <Image
     source={require('../assets/undraw_Software_engineer_re_tnjc.png')}
-    style={[StyleSheet.absoluteFillObject, { bottom: 10,top:620, left: 0,right:50, width: 350, height: 140 }]}
+    style={[StyleSheet.absoluteFillObject, { bottom: 10, top:'86%', left: 0, right:'40%', width: 350, height: 140 }]}
   />
    <Image
     source={require('../assets/Vector 1_b.png')}
-    style={[StyleSheet.absoluteFillObject, { bottom: 10,top:535, left: 145,right:50, width: 60, height: 60 }]}
+    style={[StyleSheet.absoluteFillObject, { top:'87%', left: '49%', width: 35, height: 35 }]}
   />
    <Image
     source={require('../assets/bottom1.png')}
-    style={[StyleSheet.absoluteFillObject, { bottom: 0,top: 600, right: 50, width: 200, height: 200 }]}
+    style={[StyleSheet.absoluteFillObject, { top: '84%', right: '50%', width: 200, height: 200 }]}
   />
    <Image
     source={require('../assets/top1.png')}
-    style={[StyleSheet.absoluteFillObject, { bottom: 50, left: 200, width: 300, height: 200 }]}
+    style={[StyleSheet.absoluteFillObject, { left: '60%', width: 300, height: 200 }]}
   />
 </View>
 

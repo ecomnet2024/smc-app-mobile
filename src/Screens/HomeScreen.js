@@ -19,6 +19,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useMutation } from '@apollo/client';
 import { USER_UPDATE_PICTURE } from '../../src/Screens/graphql/Mutation'; 
 import SessionContext from '../../Components/SessionProvider';
+import { colors } from '../assets/utils/color'
 
 
 
@@ -202,22 +203,24 @@ const scrollToTop = () => {
     navigation.navigate("Emergency");
  }
   if (loading) {
-    return <SafeAreaView style={styles.container}>
-    <ActivityIndicator size="large" color="#3C58C1" />
+    return <SafeAreaView style={styles.error}>
+    <ActivityIndicator size="large" color={colors.primary} />
     </SafeAreaView>;
   }
   if (error) {
-    return <SafeAreaView><Text>Error: {error.message}</Text></SafeAreaView>;
+    return <SafeAreaView style={styles.error}><Text> Error : {error.message} Check your connection or Sign In again</Text></SafeAreaView>;
   }
   if (userLoading) {
-    return <SafeAreaView style={styles.container}>
-    <ActivityIndicator size="large" color="#3C58C1" />
+    return <SafeAreaView style={styles.error}>
+    <ActivityIndicator size="large" color={colors.primary} />
     <Text>Loading user data...</Text>
     </SafeAreaView>;
   }
   if (userError) {
     console.error('Error fetching user data:', userError);
-    return <Text>Error loading user data</Text>;
+    return <SafeAreaView style={styles.error}>
+    <Text> Oop's Error loading user data</Text>;
+    </SafeAreaView>;
   }
 
 
@@ -273,6 +276,8 @@ const scrollToTop = () => {
           </View>
         </View>
 
+        <Image source={require('../assets/mapubi.png')} style={styles.bottomLeftImage} />
+
         {/* Barre de recherche */}
         
         {/* Texte de bienvenue */}
@@ -309,7 +314,7 @@ const scrollToTop = () => {
             style={styles.scrollToTopButton}
             onPress={scrollToTop}
           >
-            <AntDesign name="arrowup" size={24} color="white" />
+            <AntDesign name="arrowup" size={26} color="white" />
           </TouchableOpacity>
         )}
 
@@ -323,17 +328,16 @@ export default HomeScreen
 
 const styles = StyleSheet.create({
   scrollContainer: {
-   // flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
   scrollToTopButton: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#3C58C1',
+    bottom: '3%',
+    right: '5%',
+    backgroundColor: colors.primary,
     borderRadius: 50,
-    padding: 15,
+    padding: '4%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -343,68 +347,73 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'flex-start',
-    paddingHorizontal: 8,
+    paddingHorizontal: '2%',
     backgroundColor: '#fff',
-    marginVertical:5,
-
+    marginVertical: '1%',
+  },
+  error: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    padding: '3%',
+    backgroundColor: '#fff',
+    marginVertical: '10%',
   },
   textContainer: {
-    alignItems:'flex-start',
-    marginVertical:15,
+    alignItems: 'flex-start',
+    marginVertical: '3%',
   },
   title: {
-    fontSize: 18,
+    fontSize: '2.5%',
     fontWeight: 'bold',
-    marginVertical: 8,
+    marginVertical: '2%',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   button: {
-    width: 150,
-    height: 150,
-    backgroundColor: '#fff',
+    width: '40%',
+    height: '20%',
+    backgroundColor: 'rgba(255, 255, 255, 0)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16,
-    marginHorizontal:5 ,
+    borderRadius: '4%',
+    marginHorizontal: '2%',
   },
-  buttonText2:{
-    color:'#000000',
-    fontWeight:'semibold',
+  buttonText2: {
+    color: '#000000',
+    fontWeight: '600',
   },
   banner: {
-    backgroundColor: '#3C58C1',
-    padding: 11,
-    borderRadius: 15,
-    marginVertical:5,
+    backgroundColor: colors.primary,
+    padding: '3%',
+    borderRadius: '4%',
+    marginVertical: '1%',
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: -2,
+    marginBottom: '-0.5%',
   },
   middleRow: {
     flexDirection: 'row',
-    alignItems: '',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: '2%',
   },
   logo: {
-    width: 85,
-    height: 85,
+    width: '23%',
+    height: '23%',
     resizeMode: 'contain',
   },
   logo2: {
-    width: 96,
-    height: 100,
+    width: '27%',
+    height: '28%',
     resizeMode: 'contain',
   },
   logo3: {
-    width: 140,
-    height: 140,
+    width: '39%',
+    height: '39%',
     resizeMode: 'contain',
   },
   centerRow: {
@@ -414,71 +423,79 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuIcon: {
-    marginRight: 12,
-    width:25,
-    height:25,
+    marginRight: '3%',
+    width: '7%',
+    height: '7%',
   },
   email: {
-    fontSize: 14,
+    fontSize: '2%',
     color: '#fff',
   },
   profileImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 25,
-    marginLeft: 125,
+    width: '13%',
+    height: '13%',
+    borderRadius: 50,
+    marginLeft: '35%',
     borderWidth: 1,
-    borderColor: '#ccc', // Optionnel : ajout d'une bordure
-    backgroundColor: '#f0f0f0', // Couleur de fond par défaut si l'image ne charge pas
+    borderColor: '#ccc',
+    backgroundColor: '#f0f0f0',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    padding: 7,
-    marginBottom: 6,
+    borderRadius: 5,
+    padding: '2%',
+    marginBottom: '1%',
   },
   searchInput: {
     flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
+    marginLeft: '3%',
+    fontSize: '2.5%',
   },
   welcomeText: {
-    fontSize: 18,
+    fontSize: '2.5%',
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#ffffff',
   },
   logoutButton: {
-    padding: 5,
-    borderRadius: 5,
+    padding: '2%',
+    borderRadius: '2%',
     alignItems: 'center',
-    marginLeft: 10,
+    marginLeft: '3%',
   },
   logoutButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: '1.5%',
   },
   backgroundImage: {
     position: 'absolute',
-    width: 350,  // Largeur de l'image
-    height: 350, // Hauteur de l'image
-    zIndex: -1,  // Met les images derrière le contenu
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
   },
   image1: {
-    top: -5,
-    left: 8,
+    top: '-5%',
+    left: '2%',
   },
   image2: {
-    top: 450,
-    right: -15,
-    width: 350,  // Largeur de l'image
+    top: '90%',
+    width: '110%',
+    left: '22%',
   },
   image3: {
-    top: 390,
-    right: -5,
+    top: '75%',
+    right: '18%',
+    left: '2%',
   },
-
-})
+  bottomLeftImage: {
+    position: 'absolute',
+    bottom: '5%',
+    left: '7%',
+    width: '17%',
+    height: '17%',
+    resizeMode: 'contain',
+  },
+});

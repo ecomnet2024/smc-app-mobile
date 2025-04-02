@@ -154,12 +154,6 @@ console.log('Navigating with:', {
       !loading && !error && <Text style={styles.noData}>No consultations available for this patient.</Text>
     )}
 
-         {/* <TouchableOpacity
-              style={styles.button}
-              onPress={() => navigation.navigate('NewConsultation', { patient: patient ,  // bouton pour ajouter une consultation
-                patientData: consultation.patient, patientId:consultation.patient._id})}>
-              <Text style={styles.buttonText}>Add Consultation</Text>
-         </TouchableOpacity> */}
 
     </SafeAreaView>
     </GestureHandlerRootView>

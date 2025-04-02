@@ -16,6 +16,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { SelectList } from 'react-native-dropdown-select-list';
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { colors } from '../assets/utils/color';
 
 
 const SignUpScreen = () => {
@@ -169,7 +170,7 @@ const SignUpScreen = () => {
       <TouchableOpacity 
         style={styles.backButton}
         onPress={() => navigation.goBack()} >
-        <Ionicons name="chevron-back-circle" size={37} color="gray" />
+        <Ionicons name="chevron-back-circle" size={38} color="gray" />
       </TouchableOpacity>
 
      <TouchableOpacity style={styles.bannerButton}>
@@ -318,10 +319,9 @@ const SignUpScreen = () => {
        </View> */}
 
        <View style={styles.TextContainer}>
-       <Text style={styles.Text}> I already have an account
- </Text>
+       <Text style={styles.Text}> I already have an account. </Text>
       <TouchableOpacity>
-       <Text style={{color:"#3C58C1", fontSize: 16}} onPress={handleLogin}> Sign In </Text>
+       <Text style={{color:colors.primary, fontSize: 16}} onPress={handleLogin}> Sign In </Text>
       </TouchableOpacity>
        </View>
 
@@ -338,13 +338,13 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1, // Permet à ScrollView de s'étendre pour tout le contenu
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     backgroundColor: '#fff',
   },
   container:{
     flex: 1,
-    marginTop: 6,
-    marginHorizontal: 8,
+    marginTop: 2,
+    marginHorizontal: 7,
   },
   pickerContainer: {
     borderWidth: 1,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 20,
-    paddingVertical: 2,
+    paddingVertical: 3,
     flexDirection:"row",
     alignItems:"center",
   },
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     fontWeight:"light",
   },
   backButton: {
-    left: 4,
+    left: 2,
     zIndex: 2,
   },
   bannerButton: {
@@ -377,10 +377,10 @@ const styles = StyleSheet.create({
     marginBottom: 18, // Espace entre la bannière et le formulaire
     borderRadius: 25, 
     overflow: 'hidden', 
-    backgroundColor:"#3C58C1",
+    backgroundColor: colors.primary,
     alignItems:'center',
     alignSelf: 'center',
-    marginTop:4,
+    marginTop:3,
     justifyContent:'center',
   },
   bannerImage: {
@@ -394,14 +394,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: '#333',
+    marginBottom: 2,
+    marginLeft: 7,
   },
   title: {
     fontSize: 19,
     fontWeight:"semibold",
-    color:"#3C58C1",
+    color: colors.primary,
   },
   signUpButton: {
-    backgroundColor: "#3C58C1",
+    backgroundColor: colors.primary,
     paddingVertical: 11,
     paddingHorizontal:10,
     marginHorizontal: 16,

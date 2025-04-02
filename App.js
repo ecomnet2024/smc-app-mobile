@@ -3,12 +3,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, GestureHandlerRootView } from 'react-native-gesture-handler'
 import SignUpScreen  from './src/Screens/SignUpScreen';
 import  LoginScreen from './src/Screens/LoginScreen';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native'
-import AntDesign from '@expo/vector-icons/AntDesign';
 import ForgotScreen from './src/Screens/ForgotScreen';
 import HomeScreen from './src/Screens/HomeScreen';
 import PhoneScreen from './src/Screens/PhoneScreen';
@@ -81,33 +79,6 @@ function SplashScreen({ navigation }) {
     </View>
   );
 }
-
-
-// function GetStartedScreen({ navigation }) {
-//   return (
-//     <GestureHandlerRootView>
-//     <View style={styles.getStartedContainer}>
-//       <Image 
-//         source={require('./src/assets/consultation.png')} // Exemple d'icône
-//         style={styles.logo} resizeMode='contain'/>
-
-//       <Text style={styles.getStartedText}>Welcome to the App!</Text>
-//       <TouchableOpacity 
-//         style={styles.getStartedButton} 
-//         onPress={() => navigation.replace('Login')} // Redirige vers la page Login
-//       >
-//         <Text style={styles.getStartedButtonText}>Get Started </Text>
-//         <View style={styles.iconContainer}>
-//         <AntDesign name="right" size={24} color="gray" style={styles.icon} />
-//         <AntDesign name="right" size={24} color="black" style={styles.icon} />
-//         <AntDesign name="right" size={24} color="black" style={styles.icon} />
-//         </View>
-
-//       </TouchableOpacity>
-//     </View>
-//     </GestureHandlerRootView>
-//   );
-// }
 
 
 
