@@ -14,6 +14,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import LabResultScreen from './AllDetails/LabresultScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
+import { colors } from '../assets/utils/color'
 import { ActivityIndicator } from 'react-native';
 
 
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 45,
     right: 16,
-    backgroundColor: "#3C58C1",
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 50,
     alignItems: "center",
@@ -442,7 +443,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 15,
-    color: '#3C58C1',
+    color: colors.primary,
     fontWeight: 'bold',
   },
   galleryHeader: {

@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import {jwtDecode} from 'jwt-decode';
 import { Image } from 'react-native';
+import { colors } from '../assets/utils/color'
 
 
 const EmergencyScreen = () => {
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   consultationbutton: {
     width: 150,
     height: 120,
-    backgroundColor: '#318CE7',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 15,

@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler'
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { Image } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { colors } from '../assets/utils/color'
 
 const ForgotScreen = () => {
     const navigation = useNavigation();
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Espace entre la bannière et le formulaire
     borderRadius: 25, 
     overflow: 'hidden', 
-    backgroundColor:"#3C58C1",
+    backgroundColor: colors.primary,
     alignItems:'center',
     marginTop:10,
    justifyContent:'center',
@@ -107,10 +108,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight:"semibold",
-    color:"#3C58C1",
+    color: colors.primary,
   },
   ValidateButton: {
-    backgroundColor: "#3C58C1",
+    backgroundColor: colors.primary,
     paddingVertical: 11,
     paddingHorizontal:15,
     marginHorizontal: 10,

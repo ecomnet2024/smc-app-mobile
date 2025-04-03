@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {jwtDecode} from 'jwt-decode';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator } from 'react-native';
+import { colors } from '../assets/utils/color';
 import { Formik } from "formik";
 import * as Yup from "yup";
 
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   signInButton: {
-    backgroundColor: "#3C58C1",
+    backgroundColor: colors.primary,
     paddingVertical: 11,
     paddingHorizontal:15,
     marginHorizontal: 10,

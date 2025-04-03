@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native'
 import { SelectList } from 'react-native-dropdown-select-list';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { setLogVerbosity } from '@apollo/client';
+import { colors } from '../assets/utils/color';
 
 
 const CreatePatientForm = () => {
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   signInButton: {
-    backgroundColor: "#3C58C1",
+    backgroundColor: colors.primary,
     paddingVertical: 11,
     paddingHorizontal:15,
     marginHorizontal: 10,
