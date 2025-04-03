@@ -21,8 +21,8 @@ export const SessionProvider = ({ children }) => {
     await AsyncStorage.removeItem('userToken');
     await AsyncStorage.removeItem('userEmail');
     Alert.alert(
-      "Session Expired",
-      "Your session has expired. Please log in again.",
+      "Session Closed",
+      "Your ended your session. Please log in again.",
       [
         {
           text: "OK",
