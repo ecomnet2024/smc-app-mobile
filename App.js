@@ -22,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SessionProvider } from './Components/SessionProvider';
 import EmergencyScreen from './src/Screens/EmergencyScreen';
 import LabResultScreen from './src/Screens/AllDetails/LabresultScreen';
+import { colors } from './src/assets/utils/color';
 
 
 
@@ -72,6 +73,10 @@ function SplashScreen({ navigation }) {
 
   return (
     <View style={styles.splashContainer}>
+      <Image 
+        source={require('./src/assets/icon.png')} // Exemple d'icône
+        style={styles.logo} resizeMode='contain'
+      />
       <Image 
         source={require('./src/assets/Group 13.png')} // Exemple d'icône
         style={styles.logo} resizeMode='contain'
@@ -171,11 +176,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3C58C1', // Bleu en fond d'écran
+    backgroundColor: colors.primary, // Bleu en fond d'écran
   },
   logo: {
-    width: '90%',
-    height: '90%', // Dimensions de l'icône
+    width: '60%',
+    height: '60%', // Dimensions de l'icône
+    alignSelf: 'center',
+    marginBottom: -155,
   },
   getStartedContainer: {
     flex: 1,

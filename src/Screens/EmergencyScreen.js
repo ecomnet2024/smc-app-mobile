@@ -58,7 +58,7 @@ const EmergencyScreen = () => {
     if (callCenterNumber) {
       // Ouvre le composeur téléphonique
       Linking.openURL(`tel:${callCenterNumber}`).catch(() => {
-        Alert.alert('Error', 'Failed to initiate the call.');
+        Alert.alert('Feature Unavailable', 'Failed to initiate the call.');
       });
     } else {
       Alert.alert('Feature Unavailable', 'Sorry, this feature is currently unavailable.');
