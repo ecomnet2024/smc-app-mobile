@@ -114,7 +114,7 @@ console.log('Navigating with:', {
       <View style={styles.headerContainer}>
       <TouchableOpacity
         style={styles.homeButton}
-        onPress={() => navigation.navigate("HomeTabs")}
+        onPress={() => navigation.navigate("Home")}
       >
       <Ionicons name="home" size={30} color="black" />
      </TouchableOpacity>

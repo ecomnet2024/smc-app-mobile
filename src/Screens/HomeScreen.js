@@ -100,9 +100,9 @@ const HomeScreen = () => {
       type: 'image/jpeg',
     });
     data.append('upload_preset', 'my_preset');
-    data.append('cloud_name', 'djovqbxfl');
+    data.append('cloud_name', 'docju4dgs');
   
-    const response = await fetch('https://api.cloudinary.com/v1_1/djovqbxfl/image/upload', {
+    const response = await fetch('https://api.cloudinary.com/v1_1/docju4dgs/image/upload', {
       method: 'POST',
       body: data,
     });

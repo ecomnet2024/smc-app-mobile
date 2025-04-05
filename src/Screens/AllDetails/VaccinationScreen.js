@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { colors } from '../../assets/utils/color'
 
 
 const VaccinationScreen = ({ route }) => {
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   addButton: {
-    backgroundColor: '#3C58C1',
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ccc',
   },
   submitButton: {
-    backgroundColor: '#3C58C1',
+    backgroundColor: colors.primary,
   },
   cancelButtonText: {
     color: '#333',

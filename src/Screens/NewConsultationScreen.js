@@ -141,7 +141,7 @@ const uploadImageToCloudinary = async (fileUri) => {
     formData.append('upload_preset', 'my_preset');
 
     try {
-      const response = await fetch('https://api.cloudinary.com/v1_1/djovqbxfl/image/upload', {
+      const response = await fetch('https://api.cloudinary.com/v1_1/docju4dgs/image/upload', {
         method: 'POST',
         body: formData,
         headers: { 'Content-Type': 'multipart/form-data' },

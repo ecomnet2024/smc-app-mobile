@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../../assets/utils/color';
 
 const AllergyScreen = ({ route }) => {
 
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   addButton: {
-    backgroundColor: '#3C58C1',
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

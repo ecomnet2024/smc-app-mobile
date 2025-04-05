@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ActivityIndicator } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../../assets/utils/color';
 
 const PrescriptionScreen = ({ route }) => {
 
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   addButton: {
-    backgroundColor: '#3C58C1',
+    backgroundColor: colors.primary,
     padding: 14,
     borderRadius: 10,
     marginHorizontal: 10,

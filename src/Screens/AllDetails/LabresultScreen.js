@@ -10,6 +10,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { colors } from '../../assets/utils/color';
 
 
 const LabResultScreen = ({ route }) => {
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7f7f7',
   },
   addButton: {
-    backgroundColor: '#3C58C1',
+    backgroundColor: colors.primary,
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
