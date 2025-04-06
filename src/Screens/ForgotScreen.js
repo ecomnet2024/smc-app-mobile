@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, Alert } from 'react-native';
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView, TouchableOpacity, TextInput } from 'react-native-gesture-handler';
@@ -44,7 +44,7 @@ const ForgotScreen = () => {
          </View>
       </View>
 
-      <TouchableOpacity style= {styles.ValidateButton}>
+      <TouchableOpacity style= {styles.ValidateButton} onPress={() => Alert.alert("", "This feature is not available yet.", [{ text: "OK" }])}>
           <Text style={styles.buttonText}>Validate</Text>
         </TouchableOpacity>
 
